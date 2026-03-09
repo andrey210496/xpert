@@ -10,6 +10,7 @@ interface AuthContextType {
     isAuthenticated: boolean;
     signIn: (email: string, password: string) => Promise<{ error?: string, profile?: Profile }>;
     signUp: (data: SignUpData) => Promise<{ error?: string, profile?: Profile }>;
+    signUpFromLead: (data: LeadSignUpData) => Promise<{ error?: string, profile?: Profile }>;
     signOut: () => Promise<void>;
     refreshAuthData: () => Promise<void>;
     setDemoProfile: (profileType: ProfileType) => void;
@@ -26,6 +27,14 @@ interface SignUpData {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export interface LeadSignUpData {
+    email: string;
+    password: string;
+    fullName: string;
+    phone: string;
+    profileType: ProfileType;
+}
 
 // Demo data for when Supabase is not configured
 const DEMO_TENANT: Tenant = {
@@ -206,6 +215,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, [user?.id, loadProfile]);
 
+    const signUpFromLead = useCallback(async (data: LeadSignUpData) => {
+        if (!isSupabaseConfigured()) {
+            setUser({ id: `demo-user-${data.profileType}`, email: data.email });
+            setProfile(createDemoProfile(data.profileType));
+            setTenant(DEMO_TENANT);
+            return {};
+        }
+
+        const { data: authData, error } = await supabase.auth.signUp({
+            email: data.email,
+            password: data.password,
+        });
+
+        if (error) return { error: error.message };
+        if (!authData.user) return { error: 'Erro ao criar conta' };
+
+        const { data: rpcData, error: rpcError } = await supabase.rpc('register_lead_user', {
+            p_user_id: authData.user.id,
+            p_full_name: data.fullName,
+            p_phone: data.phone,
+            p_profile_type: data.profileType,
+        });
+
+        if (rpcError) {
+            await supabase.auth.signOut();
+            return { error: rpcError.message || 'Erro ao criar perfil.' };
+        }
+
+        return { profile: rpcData as Profile };
+    }, []);
+
     const setDemoProfile = useCallback((profileType: ProfileType) => {
         const demoUser = { id: `demo-user-${profileType}`, email: 'demo@xpert.com' };
         setUser(demoUser);
@@ -223,6 +263,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 isAuthenticated: !!user,
                 signIn,
                 signUp,
+                signUpFromLead,
                 signOut,
                 refreshAuthData,
                 setDemoProfile,

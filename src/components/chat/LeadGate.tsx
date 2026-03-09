@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Phone, Send, ShieldCheck, Bot } from 'lucide-react';
+import { User, Phone, Mail, Send, ShieldCheck, Bot, Home, Wrench, Hammer, Building2 } from 'lucide-react';
 import { AGENT_CONFIGS } from '../../config/agents';
 import { supabase } from '../../services/supabase';
 import type { ProfileType } from '../../types';
 
 const LEAD_STORAGE_KEY = 'xpert_chat_lead';
 
-interface LeadInfo {
+export interface LeadInfo {
     name: string;
     phone: string;
+    email: string;
+    profileType: ProfileType;
     leadId: string;
 }
 
@@ -18,7 +20,7 @@ export function getStoredLead(): LeadInfo | null {
         const stored = localStorage.getItem(LEAD_STORAGE_KEY);
         if (!stored) return null;
         const parsed = JSON.parse(stored);
-        if (parsed.name && parsed.phone && parsed.leadId) return parsed;
+        if (parsed.name && parsed.phone && parsed.email && parsed.profileType && parsed.leadId) return parsed;
         return null;
     } catch {
         return null;
@@ -29,7 +31,18 @@ function storeLead(lead: LeadInfo) {
     localStorage.setItem(LEAD_STORAGE_KEY, JSON.stringify(lead));
 }
 
-type Step = 'greeting' | 'name' | 'phone' | 'consent' | 'done';
+export function clearStoredLead() {
+    localStorage.removeItem(LEAD_STORAGE_KEY);
+}
+
+type Step = 'greeting' | 'name' | 'phone' | 'email' | 'profile' | 'consent' | 'done';
+
+const PROFILE_OPTIONS = [
+    { type: 'morador' as ProfileType, label: 'Morador', desc: 'Sou morador', Icon: Home, color: '#10B981' },
+    { type: 'zelador' as ProfileType, label: 'Zelador', desc: 'Sou zelador', Icon: Wrench, color: '#F59E0B' },
+    { type: 'prestador' as ProfileType, label: 'Prestador', desc: 'Presto serviços', Icon: Hammer, color: '#8B5CF6' },
+    { type: 'admin' as ProfileType, label: 'Síndico', desc: 'Sou síndico(a)', Icon: Building2, color: '#3B82F6' },
+];
 
 interface LeadGateProps {
     agentType: ProfileType;
@@ -85,6 +98,8 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
     const [step, setStep] = useState<Step>('greeting');
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
+    const [profileType, setProfileType] = useState<ProfileType | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
@@ -95,7 +110,7 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
     }, []);
 
     useEffect(() => {
-        if (step === 'name' || step === 'phone') {
+        if (step === 'name' || step === 'phone' || step === 'email') {
             setTimeout(() => inputRef.current?.focus(), 400);
         }
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -116,17 +131,31 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
     const handlePhoneSubmit = () => {
         const digits = phone.replace(/\D/g, '');
         if (digits.length < 10) return;
-        setStep('consent');
+        setStep('email');
+    };
+
+    const handleEmailSubmit = () => {
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email.trim())) return;
+        setStep('profile');
+    };
+
+    const handleProfileSelect = (type: ProfileType) => {
+        setProfileType(type);
+        setTimeout(() => setStep('consent'), 300);
     };
 
     const handleConsent = async () => {
+        if (!profileType) return;
         setIsSubmitting(true);
         try {
             const { data, error } = await supabase.from('leads').insert([{
                 first_name: name.trim(),
                 phone: phone.trim(),
+                email: email.trim(),
                 status: 'new',
                 source: 'chat',
+                profile_type: profileType,
             }]).select('id').single();
 
             if (error) throw error;
@@ -134,16 +163,16 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
             const lead: LeadInfo = {
                 name: name.trim(),
                 phone: phone.trim(),
+                email: email.trim(),
+                profileType,
                 leadId: data.id,
             };
             storeLead(lead);
             setStep('done');
-
             setTimeout(() => onLeadCaptured(lead), 600);
         } catch (err) {
             if (import.meta.env.DEV) console.error('[LeadGate] Error:', err);
-            // Fallback: allow chat even if save fails
-            const lead: LeadInfo = { name: name.trim(), phone: phone.trim(), leadId: 'local' };
+            const lead: LeadInfo = { name: name.trim(), phone: phone.trim(), email: email.trim(), profileType, leadId: 'local' };
             storeLead(lead);
             setStep('done');
             setTimeout(() => onLeadCaptured(lead), 600);
@@ -158,6 +187,51 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
             action();
         }
     };
+
+    const renderInput = (
+        icon: React.ReactNode,
+        value: string,
+        onChange: (v: string) => void,
+        onSubmit: () => void,
+        placeholder: string,
+        type: string,
+        isValid: boolean,
+        autoComplete: string,
+    ) => (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="px-4">
+            <div className="max-w-sm ml-10">
+                <div
+                    className="flex items-center gap-2 rounded-xl border p-2.5 transition-all focus-within:ring-2"
+                    style={{ borderColor: `${config.color}40`, boxShadow: `0 0 0 1px ${config.color}10` } as React.CSSProperties}
+                >
+                    {icon}
+                    <input
+                        ref={inputRef}
+                        type={type}
+                        value={value}
+                        onChange={(e) => onChange(e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, onSubmit)}
+                        placeholder={placeholder}
+                        className="flex-1 bg-transparent text-text-primary placeholder:text-text-tertiary outline-none text-sm"
+                        autoComplete={autoComplete}
+                    />
+                    <button
+                        onClick={onSubmit}
+                        disabled={!isValid}
+                        className="w-7 h-7 rounded-lg flex items-center justify-center transition-all shrink-0 active:scale-90 disabled:opacity-20"
+                        style={{
+                            backgroundColor: isValid ? config.color : 'var(--color-bg-tertiary)',
+                            color: isValid ? '#FFF' : 'var(--color-text-tertiary)',
+                        }}
+                    >
+                        <Send size={13} />
+                    </button>
+                </div>
+            </div>
+        </motion.div>
+    );
+
+    const selectedProfile = PROFILE_OPTIONS.find(p => p.type === profileType);
 
     return (
         <div className="flex-1 flex flex-col h-full">
@@ -177,97 +251,84 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
                         )}
 
                         {/* Name input */}
-                        {step === 'name' && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="px-4"
-                            >
-                                <div className="max-w-sm ml-10">
-                                    <div
-                                        className="flex items-center gap-2 rounded-xl border p-2.5 transition-all focus-within:ring-2"
-                                        style={{ borderColor: `${config.color}40`, boxShadow: `0 0 0 1px ${config.color}10` } as React.CSSProperties}
-                                    >
-                                        <User size={16} className="text-text-tertiary shrink-0 ml-1" />
-                                        <input
-                                            ref={inputRef}
-                                            type="text"
-                                            value={name}
-                                            onChange={(e) => setName(e.target.value.slice(0, 100))}
-                                            onKeyDown={(e) => handleKeyDown(e, handleNameSubmit)}
-                                            placeholder="Seu nome..."
-                                            className="flex-1 bg-transparent text-text-primary placeholder:text-text-tertiary outline-none text-sm"
-                                            autoComplete="given-name"
-                                        />
-                                        <button
-                                            onClick={handleNameSubmit}
-                                            disabled={!name.trim() || name.trim().length < 2}
-                                            className="w-7 h-7 rounded-lg flex items-center justify-center transition-all shrink-0 active:scale-90 disabled:opacity-20"
-                                            style={{
-                                                backgroundColor: name.trim().length >= 2 ? config.color : 'var(--color-bg-tertiary)',
-                                                color: name.trim().length >= 2 ? '#FFF' : 'var(--color-text-tertiary)',
-                                            }}
-                                        >
-                                            <Send size={13} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </motion.div>
+                        {step === 'name' && renderInput(
+                            <User size={16} className="text-text-tertiary shrink-0 ml-1" />,
+                            name, (v) => setName(v.slice(0, 100)), handleNameSubmit,
+                            'Seu nome...', 'text', name.trim().length >= 2, 'given-name'
                         )}
 
-                        {/* Name echo + ask phone */}
-                        {(step === 'phone' || step === 'consent' || step === 'done') && (
+                        {/* After name: phone */}
+                        {['phone', 'email', 'profile', 'consent', 'done'].includes(step) && (
                             <>
                                 <UserBubble agentType={agentType}>{name}</UserBubble>
                                 <AgentBubble agentType={agentType}>
-                                    Prazer, <strong>{name}</strong>! 😊 Pode me informar seu telefone para contato?
+                                    Prazer, <strong>{name}</strong>! 😊 Pode me informar seu telefone?
                                 </AgentBubble>
                             </>
                         )}
 
-                        {/* Phone input */}
-                        {step === 'phone' && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="px-4"
-                            >
-                                <div className="max-w-sm ml-10">
-                                    <div
-                                        className="flex items-center gap-2 rounded-xl border p-2.5 transition-all focus-within:ring-2"
-                                        style={{ borderColor: `${config.color}40`, boxShadow: `0 0 0 1px ${config.color}10` } as React.CSSProperties}
-                                    >
-                                        <Phone size={16} className="text-text-tertiary shrink-0 ml-1" />
-                                        <input
-                                            ref={inputRef}
-                                            type="tel"
-                                            value={phone}
-                                            onChange={(e) => setPhone(formatPhone(e.target.value))}
-                                            onKeyDown={(e) => handleKeyDown(e, handlePhoneSubmit)}
-                                            placeholder="(00) 00000-0000"
-                                            className="flex-1 bg-transparent text-text-primary placeholder:text-text-tertiary outline-none text-sm"
-                                            autoComplete="tel"
-                                        />
+                        {step === 'phone' && renderInput(
+                            <Phone size={16} className="text-text-tertiary shrink-0 ml-1" />,
+                            phone, (v) => setPhone(formatPhone(v)), handlePhoneSubmit,
+                            '(00) 00000-0000', 'tel', phone.replace(/\D/g, '').length >= 10, 'tel'
+                        )}
+
+                        {/* After phone: email */}
+                        {['email', 'profile', 'consent', 'done'].includes(step) && (
+                            <>
+                                <UserBubble agentType={agentType}>{phone}</UserBubble>
+                                <AgentBubble agentType={agentType}>
+                                    Ótimo! E qual seu e-mail?
+                                </AgentBubble>
+                            </>
+                        )}
+
+                        {step === 'email' && renderInput(
+                            <Mail size={16} className="text-text-tertiary shrink-0 ml-1" />,
+                            email, (v) => setEmail(v.slice(0, 254)), handleEmailSubmit,
+                            'seu@email.com', 'email', /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim()), 'email'
+                        )}
+
+                        {/* After email: profile type */}
+                        {['profile', 'consent', 'done'].includes(step) && (
+                            <>
+                                <UserBubble agentType={agentType}>{email}</UserBubble>
+                                <AgentBubble agentType={agentType}>
+                                    Qual seu perfil?
+                                </AgentBubble>
+                            </>
+                        )}
+
+                        {/* Profile type cards */}
+                        {step === 'profile' && (
+                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="px-4">
+                                <div className="grid grid-cols-2 gap-2 max-w-sm ml-10">
+                                    {PROFILE_OPTIONS.map((opt) => (
                                         <button
-                                            onClick={handlePhoneSubmit}
-                                            disabled={phone.replace(/\D/g, '').length < 10}
-                                            className="w-7 h-7 rounded-lg flex items-center justify-center transition-all shrink-0 active:scale-90 disabled:opacity-20"
-                                            style={{
-                                                backgroundColor: phone.replace(/\D/g, '').length >= 10 ? config.color : 'var(--color-bg-tertiary)',
-                                                color: phone.replace(/\D/g, '').length >= 10 ? '#FFF' : 'var(--color-text-tertiary)',
-                                            }}
+                                            key={opt.type}
+                                            onClick={() => handleProfileSelect(opt.type)}
+                                            className="flex items-center gap-2.5 p-3 rounded-xl border border-border bg-bg-elevated hover:bg-bg-secondary transition-all cursor-pointer active:scale-95 text-left"
                                         >
-                                            <Send size={13} />
+                                            <div
+                                                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                                style={{ backgroundColor: `${opt.color}15` }}
+                                            >
+                                                <opt.Icon size={16} style={{ color: opt.color }} />
+                                            </div>
+                                            <div>
+                                                <div className="text-xs font-bold text-text-primary">{opt.label}</div>
+                                                <div className="text-[10px] text-text-tertiary">{opt.desc}</div>
+                                            </div>
                                         </button>
-                                    </div>
+                                    ))}
                                 </div>
                             </motion.div>
                         )}
 
-                        {/* Phone echo + LGPD consent */}
-                        {(step === 'consent' || step === 'done') && (
+                        {/* After profile: consent */}
+                        {['consent', 'done'].includes(step) && selectedProfile && (
                             <>
-                                <UserBubble agentType={agentType}>{phone}</UserBubble>
+                                <UserBubble agentType={agentType}>{selectedProfile.label}</UserBubble>
                                 <AgentBubble agentType={agentType}>
                                     Obrigado, {name}! Antes de começarmos, preciso do seu consentimento:
                                 </AgentBubble>
@@ -276,11 +337,7 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
 
                         {/* Consent card */}
                         {step === 'consent' && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="px-4"
-                            >
+                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="px-4">
                                 <div className="max-w-md ml-10 p-4 rounded-xl border border-border bg-bg-secondary/50">
                                     <div className="flex items-start gap-3 mb-4">
                                         <ShieldCheck size={20} className="text-success shrink-0 mt-0.5" />

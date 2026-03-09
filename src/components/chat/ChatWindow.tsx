@@ -1,5 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { LeadGate, getStoredLead } from './LeadGate';
+import { FinishSignupModal } from './FinishSignupModal';
+import type { LeadInfo } from './LeadGate';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Send,
@@ -653,12 +655,44 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateSignup, onN
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [leadCaptured, setLeadCaptured] = useState(() => isAuthenticated || !!getStoredLead());
+    const [leadData, setLeadData] = useState<LeadInfo | null>(() => getStoredLead());
+    const [showSignupModal, setShowSignupModal] = useState(false);
+    const [pendingMessage, setPendingMessage] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const config = AGENT_CONFIGS[safeAgentType];
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
+
+    // Count user messages (role === 'user')
+    const userMessageCount = messages.filter(m => m.role === 'user').length;
+
+    const handleSend = useCallback((content: string) => {
+        // If authenticated, send normally
+        if (isAuthenticated) {
+            sendMessage(content);
+            return;
+        }
+        // If lead captured but not signed up, check 3-message limit
+        if (leadCaptured && !isAuthenticated && leadData && userMessageCount >= 2) {
+            setPendingMessage(content);
+            setShowSignupModal(true);
+            return;
+        }
+        sendMessage(content);
+    }, [isAuthenticated, leadCaptured, leadData, userMessageCount, sendMessage]);
+
+    const handleSignupComplete = useCallback(() => {
+        setShowSignupModal(false);
+        // After signup, user is authenticated — send the pending message
+        if (pendingMessage) {
+            setTimeout(() => {
+                sendMessage(pendingMessage);
+                setPendingMessage(null);
+            }, 500);
+        }
+    }, [pendingMessage, sendMessage]);
 
     if (!activeAgentType) {
         return <div className="p-8 text-center text-text-tertiary">Agente não especificado.</div>;
@@ -802,7 +836,10 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateSignup, onN
                     {!isAuthenticated && !leadCaptured ? (
                         <LeadGate
                             agentType={safeAgentType}
-                            onLeadCaptured={() => setLeadCaptured(true)}
+                            onLeadCaptured={(lead) => {
+                                setLeadData(lead);
+                                setLeadCaptured(true);
+                            }}
                         />
                     ) : (
                         <div className="flex-1 w-full max-w-4xl mx-auto flex flex-col">
@@ -851,7 +888,7 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateSignup, onN
 
                 {(isAuthenticated || leadCaptured) && (
                     <ChatInput
-                        onSend={sendMessage}
+                        onSend={handleSend}
                         isStreaming={isStreaming}
                         isDisabled={isGuestLimitReached}
                         agentColor={config.color}
@@ -865,6 +902,17 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateSignup, onN
                 onCancel={() => setDeletingId(null)}
                 onConfirm={handleConfirmDelete}
             />
+
+            {/* Finish Signup Modal - triggers after 3rd guest message */}
+            {leadData && (
+                <FinishSignupModal
+                    isOpen={showSignupModal}
+                    onClose={() => setShowSignupModal(false)}
+                    leadData={leadData}
+                    onSignupComplete={handleSignupComplete}
+                    pendingMessage={pendingMessage || undefined}
+                />
+            )}
         </div>
     );
 }
