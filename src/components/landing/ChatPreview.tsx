@@ -9,20 +9,20 @@ interface ChatPreviewProps {
 
 const PREVIEW_TEXTS: Record<string, { title: string; subtitle: string }> = {
     admin: {
-        title: 'Sou Síndico(a), tenho uma dúvida sobre...',
-        subtitle: 'Gestão estratégica com base em normas e leis.',
+        title: 'Assistente Administrativo',
+        subtitle: 'Inicie uma conversa para tirar suas dúvidas.',
     },
     morador: {
-        title: 'Sou Morador(a), preciso de ajuda com...',
-        subtitle: 'Regras, direitos e convivência condominial.',
+        title: 'Portal do Morador',
+        subtitle: 'Inicie uma conversa para tirar suas dúvidas.',
     },
     zelador: {
-        title: 'Sou Zelador(a), preciso verificar...',
-        subtitle: 'Manutenção preventiva e procedimentos operacionais.',
+        title: 'Suporte à Zeladoria',
+        subtitle: 'Inicie uma conversa para tirar suas dúvidas.',
     },
     prestador: {
-        title: 'Sou Prestador(a), tenho uma questão sobre...',
-        subtitle: 'Contratos, normas e documentação técnica.',
+        title: 'Canal do Prestador',
+        subtitle: 'Inicie uma conversa para tirar suas dúvidas.',
     },
 };
 

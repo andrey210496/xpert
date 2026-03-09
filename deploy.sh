@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # --- CONFIGURAÇÕES ---
-APP_DIR="/var/www/xpert/xpert_new"
+APP_DIR="/var/www/xpert"
 DIST_DIR="$APP_DIR/dist"
 
 # Defina suas chaves aqui (ou melhor, passe como variáveis de ambiente da VPS)

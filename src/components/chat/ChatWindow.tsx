@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { LeadGate, getStoredLead } from './LeadGate';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Send,
@@ -12,20 +13,8 @@ import {
     Home,
     Wrench,
     Hammer,
-    Scale,
-    BarChart2,
-    Users,
-    HelpCircle,
-    FileText,
-    CreditCard,
-    AlertTriangle,
-    ClipboardList,
-    FileSignature,
-    ShieldCheck,
-    Briefcase,
     Sparkles,
     LockKeyhole,
-    ChevronRight,
     LogOut,
     MoreVertical,
     Trash2,
@@ -125,20 +114,14 @@ function DeleteConfirmModal({
     );
 }
 
-// ===== Welcome Screen (Rich Initial State) =====
+// ===== Welcome Screen (Clean Initial State) =====
 
 function WelcomeScreen({
     agentType,
-    onSendMessage
 }: {
     agentType: ProfileType;
-    onSendMessage: (content: string) => void;
 }) {
     const config = AGENT_CONFIGS[agentType];
-    const iconMap: Record<string, React.ElementType> = {
-        Scale, BarChart2, Users, HelpCircle, FileText, CreditCard,
-        Wrench, AlertTriangle, ClipboardList, FileSignature, ShieldCheck, Briefcase
-    };
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -186,47 +169,6 @@ function WelcomeScreen({
                 <p className="text-sm text-text-secondary max-w-sm mx-auto leading-relaxed">
                     {config.description}
                 </p>
-            </motion.div>
-
-            {/* Capabilities */}
-            <motion.div variants={itemVariants} className="w-full mt-10">
-                <h3 className="text-[11px] uppercase tracking-[0.2em] font-bold text-text-tertiary text-center mb-5">
-                    Como posso te ajudar hoje?
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {config.capabilities.map((cap, i) => {
-                        const Icon = iconMap[cap.icon] || HelpCircle;
-                        return (
-                            <div
-                                key={i}
-                                className="p-4 rounded-xl border border-border bg-bg-secondary/50 hover:bg-bg-hover hover:border-border-strong transition-all group cursor-default"
-                            >
-                                <Icon size={18} className="mb-2" style={{ color: config.color }} />
-                                <div className="text-xs font-bold text-text-primary mb-1">{cap.label}</div>
-                                <div className="text-[10px] text-text-tertiary leading-tight">{cap.detail}</div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </motion.div>
-
-            {/* Suggested Questions */}
-            <motion.div variants={itemVariants} className="w-full mt-10">
-                <h3 className="text-[11px] uppercase tracking-[0.2em] font-bold text-text-tertiary text-center mb-4">
-                    Perguntas frequentes
-                </h3>
-                <div className="flex flex-col gap-2">
-                    {config.suggestedQuestions.map((q, i) => (
-                        <button
-                            key={i}
-                            onClick={() => onSendMessage(q)}
-                            className="group flex items-center justify-between px-4 py-3 rounded-xl border border-border bg-bg-secondary/30 text-left text-sm text-text-secondary hover:text-text-primary hover:border-border-strong hover:bg-bg-hover transition-all cursor-pointer"
-                        >
-                            <span>{q}</span>
-                            <ChevronRight size={14} className="text-text-tertiary group-hover:text-text-primary transition-transform group-hover:translate-x-0.5" />
-                        </button>
-                    ))}
-                </div>
             </motion.div>
         </motion.div>
     );
@@ -709,7 +651,8 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateSignup, onN
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
-    const [deletingId, setDeletingId] = useState<string | null>(null); // State for deletion confirmation
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [leadCaptured, setLeadCaptured] = useState(() => isAuthenticated || !!getStoredLead());
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const config = AGENT_CONFIGS[safeAgentType];
 
@@ -856,56 +799,64 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateSignup, onN
                 <div className="flex-1 overflow-y-auto w-full flex flex-col px-4">
                     {showSubtleBanner && onNavigateSignup && <SignupBanner variant="subtle" onSignup={onNavigateSignup} currentMessages={guestMessageCount} />}
 
-                    <div className="flex-1 w-full max-w-4xl mx-auto flex flex-col">
-                        <AnimatePresence mode="wait">
-                            {messages.length === 0 ? (
-                                <WelcomeScreen
-                                    key="welcome"
-                                    agentType={activeAgentType}
-                                    onSendMessage={sendMessage}
-                                />
-                            ) : (
-                                <motion.div
-                                    key="chat-flow"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="py-8 space-y-2 flex-1"
-                                >
-                                    {messages.map((msg, idx) => (
-                                        <MessageBubble
-                                            key={msg.id}
-                                            message={msg}
-                                            agentType={activeAgentType}
-                                            isLastInGroup={idx === messages.length - 1 || messages[idx + 1].role !== msg.role}
-                                        />
-                                    ))}
+                    {!isAuthenticated && !leadCaptured ? (
+                        <LeadGate
+                            agentType={safeAgentType}
+                            onLeadCaptured={() => setLeadCaptured(true)}
+                        />
+                    ) : (
+                        <div className="flex-1 w-full max-w-4xl mx-auto flex flex-col">
+                            <AnimatePresence mode="wait">
+                                {messages.length === 0 ? (
+                                    <WelcomeScreen
+                                        key="welcome"
+                                        agentType={activeAgentType}
+                                    />
+                                ) : (
+                                    <motion.div
+                                        key="chat-flow"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="py-8 space-y-2 flex-1"
+                                    >
+                                        {messages.map((msg, idx) => (
+                                            <MessageBubble
+                                                key={msg.id}
+                                                message={msg}
+                                                agentType={activeAgentType}
+                                                isLastInGroup={idx === messages.length - 1 || messages[idx + 1].role !== msg.role}
+                                            />
+                                        ))}
 
-                                    {isStreaming && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 5 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="flex gap-3 px-4"
-                                        >
-                                            <AgentAvatar agentType={activeAgentType} size={28} />
-                                            <TypingIndicator agentColor={config.color} />
-                                        </motion.div>
-                                    )}
+                                        {isStreaming && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 5 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className="flex gap-3 px-4"
+                                            >
+                                                <AgentAvatar agentType={activeAgentType} size={28} />
+                                                <TypingIndicator agentColor={config.color} />
+                                            </motion.div>
+                                        )}
 
-                                    <div ref={messagesEndRef} className="h-4 shrink-0" />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
+                                        <div ref={messagesEndRef} className="h-4 shrink-0" />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    )}
                 </div>
 
-                {isGuestLimitReached && onNavigateSignup && <SignupBanner variant="modal" onSignup={onNavigateSignup} onLogin={onNavigateLogin} />}
+                {(isAuthenticated || leadCaptured) && isGuestLimitReached && onNavigateSignup && <SignupBanner variant="modal" onSignup={onNavigateSignup} onLogin={onNavigateLogin} />}
 
-                <ChatInput
-                    onSend={sendMessage}
-                    isStreaming={isStreaming}
-                    isDisabled={isGuestLimitReached}
-                    agentColor={config.color}
-                />
+                {(isAuthenticated || leadCaptured) && (
+                    <ChatInput
+                        onSend={sendMessage}
+                        isStreaming={isStreaming}
+                        isDisabled={isGuestLimitReached}
+                        agentColor={config.color}
+                    />
+                )}
             </div>
 
             {/* Deletion Confirmation Modal */}
