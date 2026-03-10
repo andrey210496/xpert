@@ -172,32 +172,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: authData, error } = await supabase.auth.signUp({
             email: data.email,
             password: data.password,
+            options: {
+                data: {
+                    full_name: data.fullName,
+                    phone: data.phone,
+                    profile_type: data.profileType,
+                    tenant_name: data.tenantName,
+                    invite_code: data.inviteCode,
+                }
+            }
         });
 
         if (error) return { error: error.message };
         if (!authData.user) return { error: 'Erro ao criar conta' };
 
-        // Create profile via RPC
-        const { data: rpcData, error: rpcError } = await supabase.rpc('register_user', {
-            p_user_id: authData.user.id,
-            p_full_name: data.fullName,
-            p_phone: data.phone,
-            p_profile_type: data.profileType,
-            p_tenant_name: data.tenantName || null,
-            p_invite_code: data.inviteCode || null,
-        });
+        // Profile is automatically created by the Supabase 'on_auth_user_created' trigger
+        const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', authData.user.id)
+            .maybeSingle();
 
-        if (rpcError) {
-            // Se o RPC falhar (ex: código inválido, tenant já existe)
-            // CUIDADO: Deletar usuário exige admin auth API ou RPC com bypass RLS,
-            // mas como solução fallback pro front-end tentamos invalidar a sessão.
-            // A verdadeira mitigação é via RPC ou Edge Function para delete_user().
-            // Na ausência disso, pelo menos damos signOut e permitimos alertar erro.
-            await supabase.auth.signOut();
-            return { error: rpcError.message || 'Erro ao criar perfil. Verifique seu código.' };
-        }
-
-        return { profile: rpcData as Profile };
+        return { profile: profileData as Profile };
     }, []);
 
     const signOut = useCallback(async () => {
@@ -226,24 +222,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: authData, error } = await supabase.auth.signUp({
             email: data.email,
             password: data.password,
+            options: {
+                data: {
+                    full_name: data.fullName,
+                    phone: data.phone,
+                    profile_type: data.profileType,
+                }
+            }
         });
 
         if (error) return { error: error.message };
         if (!authData.user) return { error: 'Erro ao criar conta' };
 
-        const { data: rpcData, error: rpcError } = await supabase.rpc('register_lead_user', {
-            p_user_id: authData.user.id,
-            p_full_name: data.fullName,
-            p_phone: data.phone,
-            p_profile_type: data.profileType,
-        });
+        // Profile is automatically created by the Supabase 'on_auth_user_created' trigger
+        const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', authData.user.id)
+            .maybeSingle();
 
-        if (rpcError) {
-            await supabase.auth.signOut();
-            return { error: rpcError.message || 'Erro ao criar perfil.' };
-        }
-
-        return { profile: rpcData as Profile };
+        return { profile: profileData as Profile };
     }, []);
 
     const setDemoProfile = useCallback((profileType: ProfileType) => {
