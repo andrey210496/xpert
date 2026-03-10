@@ -173,12 +173,12 @@ export function useChat(agentType: ProfileType): UseChatReturn {
                     setCurrentConversation(activeConv);
                 }
                 // CASE 2: Real User (Supabase Insertion)
-                else if (isSupabaseConfigured() && tenant && isUUID(profile.id) && isUUID(tenant.id)) {
+                else if (isSupabaseConfigured() && isUUID(profile.id)) {
                     const { data, error } = await supabase
                         .from('conversations')
                         .insert({
                             profile_id: profile.id,
-                            tenant_id: tenant.id,
+                            tenant_id: profile.tenant_id || null,
                             agent_type: agentType,
                             title: content.slice(0, 50),
                         })
