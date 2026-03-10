@@ -675,7 +675,7 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateSignup, onN
             return;
         }
         // If lead captured but not signed up, check 3-message limit
-        if (leadCaptured && !isAuthenticated && leadData && userMessageCount >= 2) {
+        if (leadCaptured && !isAuthenticated && leadData && userMessageCount >= 3) {
             setPendingMessage(content);
             setShowSignupModal(true);
             return;

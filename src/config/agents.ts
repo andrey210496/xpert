@@ -124,4 +124,4 @@ export const PLANS = {
     enterprise: { name: 'Enterprise', tokens: 10_000_000 },
 };
 
-export const GUEST_MESSAGE_LIMIT = 100;
+export const GUEST_MESSAGE_LIMIT = 3;
