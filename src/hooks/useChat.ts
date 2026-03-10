@@ -80,10 +80,7 @@ export function useChat(agentType: ProfileType): UseChatReturn {
                     .eq('agent_type', agentType)
                     .order('updated_at', { ascending: false });
 
-                if (error) {
-                    console.error('[useChat] fetchConversations ERROR:', error.message, error.details, error.hint);
-                } else if (data) {
-                    console.log('[useChat] fetchConversations OK:', data.length, 'conversations');
+                if (!error && data) {
                     setConversations(data as Conversation[]);
                 }
             }
@@ -177,7 +174,6 @@ export function useChat(agentType: ProfileType): UseChatReturn {
                 }
                 // CASE 2: Real User (Supabase Insertion)
                 else if (isSupabaseConfigured() && isUUID(profile.id)) {
-                    console.log('[useChat] Creating conversation for profile:', profile.id, 'tenant:', profile.tenant_id);
                     const { data, error } = await supabase
                         .from('conversations')
                         .insert({
@@ -189,10 +185,7 @@ export function useChat(agentType: ProfileType): UseChatReturn {
                         .select()
                         .single();
 
-                    if (error) {
-                        console.error('[useChat] CREATE CONVERSATION ERROR:', error.message, error.details, error.hint, error.code);
-                    } else if (data) {
-                        console.log('[useChat] Conversation created OK:', data.id);
+                    if (!error && data) {
                         activeConv = data as Conversation;
                         lastFetchedIdRef.current = activeConv.id;
                         setCurrentConversation(activeConv);
@@ -223,12 +216,11 @@ export function useChat(agentType: ProfileType): UseChatReturn {
                     local.messagesMap[activeConv.id] = [...(local.messagesMap[activeConv.id] || []), userMessage];
                     saveLocalHistory(local.conversations, local.messagesMap);
                 } else if (isSupabaseConfigured() && isUUID(activeConv.id)) {
-                    const { error: msgError } = await supabase.from('messages').insert({
+                    await supabase.from('messages').insert({
                         conversation_id: activeConv.id,
                         role: 'user',
                         content: content,
                     });
-                    if (msgError) console.error('[useChat] INSERT USER MSG ERROR:', msgError.message, msgError.details, msgError.hint);
                 }
             }
 
