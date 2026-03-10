@@ -5,6 +5,15 @@ import { Lock, UserCheck, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import type { LeadInfo } from './LeadGate';
 import { clearStoredLead } from './LeadGate';
+import type { ProfileType } from '../../types';
+import { Home, Wrench, Hammer, Building2 } from 'lucide-react';
+
+const PROFILE_OPTIONS = [
+    { type: 'morador' as ProfileType, label: 'Morador', desc: 'Sou morador', Icon: Home, color: '#10B981' },
+    { type: 'zelador' as ProfileType, label: 'Zelador', desc: 'Sou zelador', Icon: Wrench, color: '#F59E0B' },
+    { type: 'prestador' as ProfileType, label: 'Prestador', desc: 'Presto serviços', Icon: Hammer, color: '#8B5CF6' },
+    { type: 'admin' as ProfileType, label: 'Síndico', desc: 'Sou síndico(a)', Icon: Building2, color: '#3B82F6' },
+];
 
 interface FinishSignupModalProps {
     isOpen: boolean;
@@ -16,6 +25,7 @@ interface FinishSignupModalProps {
 
 export function FinishSignupModal({ isOpen, onClose, leadData, onSignupComplete }: FinishSignupModalProps) {
     const { signUpFromLead } = useAuth();
+    const [selectedProfile, setSelectedProfile] = useState<ProfileType | null>(leadData.profileType || null);
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
@@ -24,6 +34,11 @@ export function FinishSignupModal({ isOpen, onClose, leadData, onSignupComplete 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        if (!selectedProfile) {
+            setError('Selecione seu perfil antes de continuar.');
+            return;
+        }
 
         if (!password.trim()) {
             setError('Crie uma senha para sua conta.');
@@ -47,7 +62,7 @@ export function FinishSignupModal({ isOpen, onClose, leadData, onSignupComplete 
                 password,
                 fullName: leadData.name,
                 phone: leadData.phone,
-                profileType: leadData.profileType,
+                profileType: selectedProfile,
             });
 
             if (result.error) {
@@ -102,6 +117,33 @@ export function FinishSignupModal({ isOpen, onClose, leadData, onSignupComplete 
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-text-primary tracking-tight">Qual seu perfil?</label>
+                        <div className="grid grid-cols-2 gap-2">
+                            {PROFILE_OPTIONS.map((opt) => (
+                                <button
+                                    key={opt.type}
+                                    type="button"
+                                    onClick={() => {
+                                        setSelectedProfile(opt.type);
+                                        setError('');
+                                    }}
+                                    className={`flex items-center gap-2.5 p-2 rounded-xl border transition-all text-left ${selectedProfile === opt.type ? 'bg-bg-hover ring-1 ring-border-strong border-border-strong shadow-sm' : 'border-border bg-bg-elevated hover:bg-bg-secondary cursor-pointer active:scale-95'}`}
+                                >
+                                    <div
+                                        className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                                        style={{ backgroundColor: `${opt.color}15` }}
+                                    >
+                                        <opt.Icon size={14} style={{ color: opt.color }} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-xs font-bold text-text-primary truncate">{opt.label}</div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     <Input
                         label="Crie sua senha"
                         placeholder="Mínimo 6 caracteres"

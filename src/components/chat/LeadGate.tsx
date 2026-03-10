@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Phone, Mail, Send, ShieldCheck, Bot, Home, Wrench, Hammer, Building2 } from 'lucide-react';
+import { User, Phone, Mail, Send, ShieldCheck, Bot } from 'lucide-react';
 import { AGENT_CONFIGS } from '../../config/agents';
 import { supabase } from '../../services/supabase';
 import type { ProfileType } from '../../types';
@@ -11,16 +11,17 @@ export interface LeadInfo {
     name: string;
     phone: string;
     email: string;
-    profileType: ProfileType;
+    profileType?: ProfileType;
     leadId: string;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function getStoredLead(): LeadInfo | null {
     try {
         const stored = localStorage.getItem(LEAD_STORAGE_KEY);
         if (!stored) return null;
         const parsed = JSON.parse(stored);
-        if (parsed.name && parsed.phone && parsed.email && parsed.profileType && parsed.leadId) return parsed;
+        if (parsed.name && parsed.phone && parsed.email && parsed.leadId) return parsed;
         return null;
     } catch {
         return null;
@@ -31,18 +32,12 @@ function storeLead(lead: LeadInfo) {
     localStorage.setItem(LEAD_STORAGE_KEY, JSON.stringify(lead));
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function clearStoredLead() {
     localStorage.removeItem(LEAD_STORAGE_KEY);
 }
 
-type Step = 'greeting' | 'name' | 'phone' | 'email' | 'profile' | 'consent' | 'done';
-
-const PROFILE_OPTIONS = [
-    { type: 'morador' as ProfileType, label: 'Morador', desc: 'Sou morador', Icon: Home, color: '#10B981' },
-    { type: 'zelador' as ProfileType, label: 'Zelador', desc: 'Sou zelador', Icon: Wrench, color: '#F59E0B' },
-    { type: 'prestador' as ProfileType, label: 'Prestador', desc: 'Presto serviços', Icon: Hammer, color: '#8B5CF6' },
-    { type: 'admin' as ProfileType, label: 'Síndico', desc: 'Sou síndico(a)', Icon: Building2, color: '#3B82F6' },
-];
+type Step = 'greeting' | 'name' | 'phone' | 'email' | 'consent' | 'done';
 
 interface LeadGateProps {
     agentType: ProfileType;
@@ -99,7 +94,6 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
-    const [profileType, setProfileType] = useState<ProfileType | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
@@ -137,16 +131,10 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
     const handleEmailSubmit = () => {
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email.trim())) return;
-        setStep('profile');
-    };
-
-    const handleProfileSelect = (type: ProfileType) => {
-        setProfileType(type);
-        setTimeout(() => setStep('consent'), 300);
+        setStep('consent');
     };
 
     const handleConsent = async () => {
-        if (!profileType) return;
         setIsSubmitting(true);
         try {
             const { data, error } = await supabase.from('leads').insert([{
@@ -155,7 +143,6 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
                 email: email.trim(),
                 status: 'new',
                 source: 'chat',
-                profile_type: profileType,
             }]).select('id').single();
 
             if (error) throw error;
@@ -164,7 +151,6 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
                 name: name.trim(),
                 phone: phone.trim(),
                 email: email.trim(),
-                profileType,
                 leadId: data.id,
             };
             storeLead(lead);
@@ -172,7 +158,7 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
             setTimeout(() => onLeadCaptured(lead), 600);
         } catch (err) {
             if (import.meta.env.DEV) console.error('[LeadGate] Error:', err);
-            const lead: LeadInfo = { name: name.trim(), phone: phone.trim(), email: email.trim(), profileType, leadId: 'local' };
+            const lead: LeadInfo = { name: name.trim(), phone: phone.trim(), email: email.trim(), leadId: 'local' };
             storeLead(lead);
             setStep('done');
             setTimeout(() => onLeadCaptured(lead), 600);
@@ -231,7 +217,7 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
         </motion.div>
     );
 
-    const selectedProfile = PROFILE_OPTIONS.find(p => p.type === profileType);
+
 
     return (
         <div className="flex-1 flex flex-col h-full">
@@ -289,46 +275,10 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
                             'seu@email.com', 'email', /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim()), 'email'
                         )}
 
-                        {/* After email: profile type */}
-                        {['profile', 'consent', 'done'].includes(step) && (
+                        {/* After email: consent */}
+                        {['consent', 'done'].includes(step) && (
                             <>
                                 <UserBubble agentType={agentType}>{email}</UserBubble>
-                                <AgentBubble agentType={agentType}>
-                                    Qual seu perfil?
-                                </AgentBubble>
-                            </>
-                        )}
-
-                        {/* Profile type cards */}
-                        {step === 'profile' && (
-                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="px-4">
-                                <div className="grid grid-cols-2 gap-2 max-w-sm ml-10">
-                                    {PROFILE_OPTIONS.map((opt) => (
-                                        <button
-                                            key={opt.type}
-                                            onClick={() => handleProfileSelect(opt.type)}
-                                            className="flex items-center gap-2.5 p-3 rounded-xl border border-border bg-bg-elevated hover:bg-bg-secondary transition-all cursor-pointer active:scale-95 text-left"
-                                        >
-                                            <div
-                                                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                                                style={{ backgroundColor: `${opt.color}15` }}
-                                            >
-                                                <opt.Icon size={16} style={{ color: opt.color }} />
-                                            </div>
-                                            <div>
-                                                <div className="text-xs font-bold text-text-primary">{opt.label}</div>
-                                                <div className="text-[10px] text-text-tertiary">{opt.desc}</div>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {/* After profile: consent */}
-                        {['consent', 'done'].includes(step) && selectedProfile && (
-                            <>
-                                <UserBubble agentType={agentType}>{selectedProfile.label}</UserBubble>
                                 <AgentBubble agentType={agentType}>
                                     Obrigado, {name}! Antes de começarmos, preciso do seu consentimento:
                                 </AgentBubble>
