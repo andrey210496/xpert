@@ -142,7 +142,6 @@ export function useChat(agentType: ProfileType): UseChatReturn {
     const sendMessage = useCallback(
         async (content: string) => {
             if (isStreaming || !content.trim()) return;
-            if (isGuestLimitReached) return;
 
             const now = Date.now();
             if (now - lastSentAtRef.current < SEND_RATE_LIMIT_MS) return;

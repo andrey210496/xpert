@@ -675,7 +675,7 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateSignup, onN
             return;
         }
         // If lead captured but not signed up, check 3-message limit
-        if (leadCaptured && !isAuthenticated && leadData && userMessageCount >= 3) {
+        if (leadCaptured && !isAuthenticated && leadData && userMessageCount >= GUEST_MESSAGE_LIMIT) {
             setPendingMessage(content);
             setShowSignupModal(true);
             return;
@@ -698,7 +698,8 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateSignup, onN
         return <div className="p-8 text-center text-text-tertiary">Agente não especificado.</div>;
     }
 
-    const showSubtleBanner = !isAuthenticated && guestMessageCount > 0 && !isGuestLimitReached;
+    // The subtle banner variable can be removed but leaving it false for now
+    const showSubtleBanner = false;
 
     const handleConfirmDelete = () => {
         if (deletingId) {
@@ -831,7 +832,7 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateSignup, onN
                 )}
 
                 <div className="flex-1 overflow-y-auto w-full flex flex-col px-4">
-                    {showSubtleBanner && onNavigateSignup && <SignupBanner variant="subtle" onSignup={onNavigateSignup} currentMessages={guestMessageCount} />}
+                    {/* Subtle banner removed as requested */}
 
                     {!isAuthenticated && !leadCaptured ? (
                         <LeadGate
@@ -884,13 +885,13 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateSignup, onN
                     )}
                 </div>
 
-                {(isAuthenticated || leadCaptured) && isGuestLimitReached && onNavigateSignup && <SignupBanner variant="modal" onSignup={onNavigateSignup} onLogin={onNavigateLogin} />}
+                {/* Modal banner removed. The FinishSignupModal will manage the limit restriction now. */}
 
                 {(isAuthenticated || leadCaptured) && (
                     <ChatInput
                         onSend={handleSend}
                         isStreaming={isStreaming}
-                        isDisabled={isGuestLimitReached}
+                        isDisabled={false} // Never disable input entirely, let handleSend block via modal
                         agentColor={config.color}
                     />
                 )}
