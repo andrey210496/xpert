@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express';
 
 const router = Router();
 
-const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_MODEL = 'gemini-2.0-flash';
 
 interface ChatMessage {
     role: 'user' | 'assistant' | 'system';
