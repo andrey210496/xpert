@@ -612,9 +612,9 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
     // Count user messages (role === 'user')
     const userMessageCount = messages.filter(m => m.role === 'user').length;
 
-    // Auto-trigger FinishSignupModal after 4th message is completed
+    // Auto-trigger FinishSignupModal after 5th message is completed (3 free + 2 after lead)
     useEffect(() => {
-        const FINAL_GUEST_LIMIT = GUEST_MESSAGE_LIMIT + 1; // 4
+        const FINAL_GUEST_LIMIT = GUEST_MESSAGE_LIMIT + 2; // 5
         if (
             !isAuthenticated && 
             leadCaptured && 
@@ -635,8 +635,8 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
             sendMessage(content);
             return;
         }
-        // If lead captured but not signed up, check final message limit (4 messages total)
-        const FINAL_GUEST_LIMIT = GUEST_MESSAGE_LIMIT + 1; // 3 + 1
+        // If lead captured but not signed up, check final message limit (5 messages total)
+        const FINAL_GUEST_LIMIT = GUEST_MESSAGE_LIMIT + 2; // 3 + 2
         if (leadCaptured && !isAuthenticated && leadData && userMessageCount >= FINAL_GUEST_LIMIT) {
             setPendingMessage(content);
             setShowSignupModal(true);
