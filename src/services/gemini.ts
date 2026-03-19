@@ -23,11 +23,12 @@ export async function streamChat(
     profile?: any,
     signal?: AbortSignal
 ): Promise<void> {
-    // Check if we should use demo mode (explicitly requested or via demo profile)
-    const isDemoProfile = profile?.id?.includes('demo');
-    const isExplicitDemo = API_BASE_URL === 'demo';
-
-    if (isDemoProfile || isExplicitDemo) {
+    // Simulation is ONLY for explicit demo sessions
+    const isDemoProfile = Boolean(profile?.id?.includes('demo'));
+    const isExplicitSimulate = API_BASE_URL === 'simulate';
+    
+    if (isDemoProfile || isExplicitSimulate) {
+        console.warn('[Gemini Service] Using simulated streaming:', { isDemoProfile, isExplicitSimulate });
         return simulateStreaming(messages, agentType, callbacks, signal);
     }
 

@@ -5,23 +5,21 @@ import type { LeadInfo } from './LeadGate';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Send,
-    Plus,
+    Trash2,
+    MoreVertical,
     Menu,
     X,
     MessageSquare,
-    User,
-    Bot,
+    Plus,
     Building2,
     Home,
     Wrench,
     Hammer,
-    Sparkles,
-    LockKeyhole,
-    LogOut,
-    MoreVertical,
-    Trash2,
-    Download,
+    Bot,
+    User,
     Share2,
+    Download,
+    LogOut
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useChat } from '../../hooks/useChat';
@@ -573,63 +571,6 @@ function ChatSidebar({
     );
 }
 
-// ===== Signup Banner Components =====
-
-function SignupBanner({ variant, onSignup, onLogin, currentMessages }: { variant: 'subtle' | 'modal', onSignup: () => void, onLogin?: () => void, currentMessages?: number }) {
-    if (variant === 'subtle') {
-        return (
-            <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mx-4 sm:mx-6 mt-4 p-3 sm:p-4 rounded-xl bg-accent/5 border border-accent/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group hover:bg-accent/10 transition-all"
-            >
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-accent">
-                        <Sparkles size={16} />
-                    </div>
-                    <div>
-                        <span className="text-xs text-text-primary font-bold block">Acesso de Convidado ({currentMessages}/{GUEST_MESSAGE_LIMIT})</span>
-                        <span className="text-[11px] text-text-secondary">Obtenha acesso ilimitado e salve seu histórico.</span>
-                    </div>
-                </div>
-                <button
-                    onClick={onSignup}
-                    className="text-xs font-bold px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-hover transition-all active:scale-95 shadow-sm"
-                >
-                    Solicitar Conta
-                </button>
-            </motion.div>
-        );
-    }
-
-    if (variant === 'modal') {
-        return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-bg-primary/90 backdrop-blur-md">
-                <Card className="max-w-sm w-full text-center p-10 space-y-6 border-border-strong shadow-2xl">
-                    <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto text-accent">
-                        <LockKeyhole size={28} />
-                    </div>
-                    <div>
-                        <h3 className="text-xl font-bold font-display tracking-tight text-text-primary mb-2">Capacidade Exaurida</h3>
-                        <p className="text-sm text-text-secondary leading-relaxed">
-                            Você atingiu o limite de <strong>{GUEST_MESSAGE_LIMIT} mensagens</strong> para convidados. Autentique-se para continuar.
-                        </p>
-                    </div>
-                    <div className="flex flex-col gap-3">
-                        <Button className="w-full h-11" onClick={onSignup}>Solicitar Credenciais</Button>
-                        <button
-                            onClick={onLogin}
-                            className="text-xs font-bold text-text-tertiary hover:text-text-primary transition-colors py-2"
-                        >
-                            JÁ POSSUO ACESSO → ENTRAR
-                        </button>
-                    </div>
-                </Card>
-            </div>
-        );
-    }
-    return null;
-}
 
 // ===== ChatWindow (Editorial Implementation) =====
 
@@ -640,21 +581,25 @@ interface ChatWindowProps {
     onNavigateLogin?: () => void;
 }
 
-export function ChatWindow({ agentType, embeddedAgentType, onNavigateSignup, onNavigateLogin }: ChatWindowProps) {
+export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: ChatWindowProps) {
     const activeAgentType = embeddedAgentType || agentType;
     const safeAgentType = activeAgentType || 'admin';
 
     const { isAuthenticated, profile, signOut } = useAuth();
     const {
         messages, conversations, currentConversation, isStreaming,
-        guestMessageCount, isGuestLimitReached, sendMessage, deleteConversation,
+        sendMessage, deleteConversation,
         startNewConversation, selectConversation, isLoadingHistory,
     } = useChat(safeAgentType);
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
-    const [leadCaptured, setLeadCaptured] = useState(() => isAuthenticated || !!getStoredLead());
+    const [leadCaptured, setLeadCaptured] = useState(() => {
+        if (isAuthenticated) return true;
+        const storedLead = getStoredLead();
+        return !!storedLead;
+    });
     const [leadData, setLeadData] = useState<LeadInfo | null>(() => getStoredLead());
     const [showSignupModal, setShowSignupModal] = useState(false);
     const [pendingMessage, setPendingMessage] = useState<string | null>(null);
@@ -697,9 +642,6 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateSignup, onN
     if (!activeAgentType) {
         return <div className="p-8 text-center text-text-tertiary">Agente não especificado.</div>;
     }
-
-    // The subtle banner variable can be removed but leaving it false for now
-    const showSubtleBanner = false;
 
     const handleConfirmDelete = () => {
         if (deletingId) {
