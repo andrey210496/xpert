@@ -27,7 +27,6 @@ import { AGENT_CONFIGS, GUEST_MESSAGE_LIMIT } from '../../config/agents';
 import type { ProfileType, Message, Conversation } from '../../types';
 import { timeAgo } from '../../utils/formatters';
 import { useAuth } from '../../contexts/AuthContext';
-import { Button, Card } from '../ui';
 
 // ===== UI Helpers =====
 
@@ -613,14 +612,32 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
     // Count user messages (role === 'user')
     const userMessageCount = messages.filter(m => m.role === 'user').length;
 
+    // Auto-trigger FinishSignupModal after 4th message is completed
+    useEffect(() => {
+        const FINAL_GUEST_LIMIT = GUEST_MESSAGE_LIMIT + 1; // 4
+        if (
+            !isAuthenticated && 
+            leadCaptured && 
+            leadData && 
+            userMessageCount >= FINAL_GUEST_LIMIT && 
+            !isStreaming && 
+            !showSignupModal &&
+            messages.length > 0 &&
+            messages[messages.length - 1].role === 'assistant'
+        ) {
+            setShowSignupModal(true);
+        }
+    }, [isAuthenticated, leadCaptured, leadData, userMessageCount, isStreaming, showSignupModal, messages]);
+
     const handleSend = useCallback((content: string) => {
         // If authenticated, send normally
         if (isAuthenticated) {
             sendMessage(content);
             return;
         }
-        // If lead captured but not signed up, check 3-message limit
-        if (leadCaptured && !isAuthenticated && leadData && userMessageCount >= GUEST_MESSAGE_LIMIT) {
+        // If lead captured but not signed up, check final message limit (4 messages total)
+        const FINAL_GUEST_LIMIT = GUEST_MESSAGE_LIMIT + 1; // 3 + 1
+        if (leadCaptured && !isAuthenticated && leadData && userMessageCount >= FINAL_GUEST_LIMIT) {
             setPendingMessage(content);
             setShowSignupModal(true);
             return;
@@ -776,7 +793,8 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
                 <div className="flex-1 overflow-y-auto w-full flex flex-col px-4">
                     {/* Subtle banner removed as requested */}
 
-                    {!isAuthenticated && !leadCaptured ? (
+                    {/* Legacy Guest Flow: Show LeadGate after 3 messages when AI is not streaming */}
+                    {!isAuthenticated && !leadCaptured && userMessageCount >= GUEST_MESSAGE_LIMIT && !isStreaming ? (
                         <LeadGate
                             agentType={safeAgentType}
                             onLeadCaptured={(lead) => {
@@ -829,7 +847,8 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
 
                 {/* Modal banner removed. The FinishSignupModal will manage the limit restriction now. */}
 
-                {(isAuthenticated || leadCaptured) && (
+                {/* Show input if authenticated, OR if guest with messages left, OR if lead captured but not reached final limit */}
+                {(isAuthenticated || (userMessageCount < GUEST_MESSAGE_LIMIT && !leadCaptured) || leadCaptured) && (
                     <ChatInput
                         onSend={handleSend}
                         isStreaming={isStreaming}

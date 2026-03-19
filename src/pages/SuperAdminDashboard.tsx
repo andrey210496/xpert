@@ -14,11 +14,6 @@ import {
     Search,
     Plus,
     Bot,
-    Database,
-    CheckCircle2,
-    XCircle,
-    Eye,
-    EyeOff,
     User,
 } from 'lucide-react';
 import { AgentsConfig } from '../components/superadmin/AgentsConfig';
@@ -93,15 +88,7 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
     const [isLoadingLeads, setIsLoadingLeads] = useState(true);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-    // Knowledge Base (Supabase) integration settings
-    const [kbUrl, setKbUrl] = useState('');
-    const [kbKey, setKbKey] = useState('');
-    const [kbTable, setKbTable] = useState('knowledge_base');
-    const [kbShowKey, setKbShowKey] = useState(false);
-    const [kbSaving, setKbSaving] = useState(false);
-    const [kbSaved, setKbSaved] = useState(false);
-    const [kbTesting, setKbTesting] = useState(false);
-    const [kbTestResult, setKbTestResult] = useState<'success' | 'error' | null>(null);
+    // Knowledge Base integration settings removed (using agents' text-based KB now)
 
     const loadTenants = async () => {
         setIsLoadingTenants(true);
@@ -134,45 +121,10 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
         if (activeTab === 'leads') {
             loadLeads();
         }
-        if (activeTab === 'settings') {
-            const saved = sessionStorage.getItem('xpert_kb_config');
-            if (saved) {
-                try {
-                    const { url, key, table } = JSON.parse(saved);
-                    setKbUrl(url || '');
-                    setKbKey(key || '');
-                    setKbTable(table || 'knowledge_base');
-                } catch { /* ignore invalid JSON */ }
-            }
-        }
+        // KB settings removal: session storage cleanup or ignore
     }, [activeTab]);
 
-    const handleSaveKbConfig = async () => {
-        setKbSaving(true);
-        setKbSaved(false);
-        sessionStorage.setItem('xpert_kb_config', JSON.stringify({ url: kbUrl, key: kbKey, table: kbTable }));
-        await new Promise(r => setTimeout(r, 400));
-        setKbSaving(false);
-        setKbSaved(true);
-        setTimeout(() => setKbSaved(false), 3000);
-    };
-
-    const handleTestKbConnection = async () => {
-        setKbTesting(true);
-        setKbTestResult(null);
-        try {
-            const res = await fetch(`${kbUrl.replace(/\/$/, '')}/rest/v1/${kbTable}?limit=1`, {
-                headers: {
-                    apikey: kbKey,
-                    Authorization: `Bearer ${kbKey}`,
-                },
-            });
-            setKbTestResult(res.ok ? 'success' : 'error');
-        } catch {
-            setKbTestResult('error');
-        }
-        setKbTesting(false);
-    };
+    // KB action handlers removed
 
     const handleViewLead = (lead: LeadData) => {
         setSelectedLead(lead);
@@ -288,7 +240,6 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
                         { id: 'tenants', label: 'Condomínios', Icon: Building2 },
                         { id: 'leads', label: 'Leads & Vendas', Icon: Users },
                         { id: 'agents', label: 'Agentes de IA', Icon: Bot },
-                        { id: 'kb', label: 'Base de Conhecimento', Icon: Database, route: '/admin/knowledge-base' },
                         { id: 'settings', label: 'Config. do Sistema', Icon: Settings },
                     ].map((item) => (
                         <button
@@ -327,12 +278,6 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
                                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
                             </button>
                         ))}
-                        <button
-                            onClick={() => navigate('/admin/knowledge-base')}
-                            className="px-4 py-2 rounded-lg text-sm whitespace-nowrap cursor-pointer border text-text-secondary border-transparent bg-bg-secondary flex items-center gap-2"
-                        >
-                            <Database size={14} /> Base de Conhecimento
-                        </button>
                     </div>
 
                     {activeTab === 'overview' && (
@@ -609,108 +554,6 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
                                 <p className="text-sm text-text-secondary mt-1">Gerencie integrações e configurações globais da plataforma.</p>
                             </div>
 
-                            {/* Supabase Knowledge Base */}
-                            <Card variant="default" className="p-6">
-                                <div className="flex items-start gap-4 mb-6">
-                                    <div className="p-2.5 rounded-xl bg-[#3ECF8E]/10 shrink-0">
-                                        <Database size={20} className="text-[#3ECF8E]" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-text-primary">Base de Conhecimento — Supabase</h3>
-                                        <p className="text-sm text-text-secondary mt-0.5">
-                                            Conecte os agentes IA a uma tabela do Supabase para consultar documentos e fornecer respostas contextualizadas.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {/* URL */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                                            URL do Projeto Supabase
-                                        </label>
-                                        <input
-                                            type="url"
-                                            placeholder="https://seu-projeto.supabase.co"
-                                            value={kbUrl}
-                                            onChange={(e) => { setKbUrl(e.target.value); setKbTestResult(null); }}
-                                            className="w-full bg-bg-secondary border border-border rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent/50 transition-colors font-mono"
-                                        />
-                                    </div>
-
-                                    {/* API Key */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                                            Chave de API <span className="text-text-tertiary font-normal">(anon key)</span>
-                                        </label>
-                                        <div className="relative">
-                                            <input
-                                                type={kbShowKey ? 'text' : 'password'}
-                                                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                                                value={kbKey}
-                                                onChange={(e) => { setKbKey(e.target.value); setKbTestResult(null); }}
-                                                className="w-full bg-bg-secondary border border-border rounded-lg px-3 py-2.5 pr-10 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent/50 transition-colors font-mono"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setKbShowKey(v => !v)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary transition-colors cursor-pointer"
-                                            >
-                                                {kbShowKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Table name */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                                            Nome da Tabela de Conhecimento
-                                        </label>
-                                        <input
-                                            type="text"
-                                            placeholder="knowledge_base"
-                                            value={kbTable}
-                                            onChange={(e) => { setKbTable(e.target.value); setKbTestResult(null); }}
-                                            className="w-full bg-bg-secondary border border-border rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent/50 transition-colors font-mono"
-                                        />
-                                        <p className="text-xs text-text-tertiary mt-1.5">
-                                            Nome exato da tabela que contém os documentos da base de conhecimento.
-                                        </p>
-                                    </div>
-
-                                    {/* Actions + feedback */}
-                                    <div className="flex flex-wrap items-center gap-3 pt-2">
-                                        <Button
-                                            variant="secondary"
-                                            size="sm"
-                                            onClick={handleTestKbConnection}
-                                            isLoading={kbTesting}
-                                            disabled={!kbUrl || !kbKey || !kbTable}
-                                        >
-                                            Testar Conexão
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            onClick={handleSaveKbConfig}
-                                            isLoading={kbSaving}
-                                            disabled={!kbUrl || !kbKey || !kbTable}
-                                        >
-                                            {kbSaved ? 'Salvo!' : 'Salvar Configurações'}
-                                        </Button>
-
-                                        {kbTestResult === 'success' && (
-                                            <span className="flex items-center gap-1.5 text-sm text-success">
-                                                <CheckCircle2 size={15} /> Conexão estabelecida com sucesso
-                                            </span>
-                                        )}
-                                        {kbTestResult === 'error' && (
-                                            <span className="flex items-center gap-1.5 text-sm text-error">
-                                                <XCircle size={15} /> Falha na conexão — verifique URL e chave
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </Card>
                         </motion.div>
                     )}
                 </main>
