@@ -605,12 +605,14 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const config = AGENT_CONFIGS[safeAgentType];
 
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
-
     // Count user messages (role === 'user')
     const userMessageCount = messages.filter(m => m.role === 'user').length;
+
+    const showLeadGate = !isAuthenticated && !leadCaptured && userMessageCount >= GUEST_MESSAGE_LIMIT && !isStreaming;
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, showLeadGate]);
 
     // Auto-trigger FinishSignupModal after 5th message is completed (3 free + 2 after lead)
     useEffect(() => {
@@ -790,11 +792,48 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
                     </header>
                 )}
 
-                <div className="flex-1 overflow-y-auto w-full flex flex-col px-4">
-                    {/* Subtle banner removed as requested */}
+                <div className="flex-1 overflow-y-auto w-full flex flex-col">
+                    {/* Messages always visible */}
+                    <div className="flex-1 w-full max-w-4xl mx-auto flex flex-col px-4">
+                        <AnimatePresence mode="wait">
+                            {messages.length === 0 && !showLeadGate ? (
+                                <WelcomeScreen
+                                    key="welcome"
+                                    agentType={activeAgentType}
+                                />
+                            ) : (
+                                <motion.div
+                                    key="chat-flow"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="py-8 space-y-2 flex-1"
+                                >
+                                    {messages.map((msg, idx) => (
+                                        <MessageBubble
+                                            key={msg.id}
+                                            message={msg}
+                                            agentType={activeAgentType}
+                                            isLastInGroup={idx === messages.length - 1 || messages[idx + 1].role !== msg.role}
+                                        />
+                                    ))}
 
-                    {/* Legacy Guest Flow: Show LeadGate after 3 messages when AI is not streaming */}
-                    {!isAuthenticated && !leadCaptured && userMessageCount >= GUEST_MESSAGE_LIMIT && !isStreaming ? (
+                                    {isStreaming && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="flex gap-3 px-4"
+                                        >
+                                            <AgentAvatar agentType={activeAgentType} size={28} />
+                                            <TypingIndicator agentColor={config.color} />
+                                        </motion.div>
+                                    )}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* LeadGate appears inline below messages after 3rd message */}
+                    {showLeadGate && (
                         <LeadGate
                             agentType={safeAgentType}
                             onLeadCaptured={(lead) => {
@@ -802,57 +841,17 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
                                 setLeadCaptured(true);
                             }}
                         />
-                    ) : (
-                        <div className="flex-1 w-full max-w-4xl mx-auto flex flex-col">
-                            <AnimatePresence mode="wait">
-                                {messages.length === 0 ? (
-                                    <WelcomeScreen
-                                        key="welcome"
-                                        agentType={activeAgentType}
-                                    />
-                                ) : (
-                                    <motion.div
-                                        key="chat-flow"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        className="py-8 space-y-2 flex-1"
-                                    >
-                                        {messages.map((msg, idx) => (
-                                            <MessageBubble
-                                                key={msg.id}
-                                                message={msg}
-                                                agentType={activeAgentType}
-                                                isLastInGroup={idx === messages.length - 1 || messages[idx + 1].role !== msg.role}
-                                            />
-                                        ))}
-
-                                        {isStreaming && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 5 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                className="flex gap-3 px-4"
-                                            >
-                                                <AgentAvatar agentType={activeAgentType} size={28} />
-                                                <TypingIndicator agentColor={config.color} />
-                                            </motion.div>
-                                        )}
-
-                                        <div ref={messagesEndRef} className="h-4 shrink-0" />
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
                     )}
+
+                    <div ref={messagesEndRef} className="h-4 shrink-0" />
                 </div>
 
-                {/* Modal banner removed. The FinishSignupModal will manage the limit restriction now. */}
-
-                {/* Show input if authenticated, OR if guest with messages left, OR if lead captured but not reached final limit */}
-                {(isAuthenticated || (userMessageCount < GUEST_MESSAGE_LIMIT && !leadCaptured) || leadCaptured) && (
+                {/* Show input only when not in lead capture mode */}
+                {(isAuthenticated || leadCaptured || userMessageCount < GUEST_MESSAGE_LIMIT) && (
                     <ChatInput
                         onSend={handleSend}
                         isStreaming={isStreaming}
-                        isDisabled={false} // Never disable input entirely, let handleSend block via modal
+                        isDisabled={false}
                         agentColor={config.color}
                     />
                 )}

@@ -220,12 +220,11 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
 
 
     return (
-        <div className="flex-1 flex flex-col h-full">
-            <div className="flex-1 overflow-y-auto py-8">
-                <div className="max-w-2xl mx-auto space-y-4">
-                    {/* Greeting */}
+        <div className="w-full">
+            <div className="py-4">
+                <div className="max-w-2xl mx-auto space-y-4 px-4">
                     <AgentBubble agentType={agentType}>
-                        Olá! 👋 Eu sou o <strong>{config.name}</strong>. Estou aqui para te ajudar.
+                        Para continuar nossa conversa, preciso de algumas informações. Pode me ajudar? 😊
                     </AgentBubble>
 
                     <AnimatePresence>
@@ -322,3 +321,4 @@ export function LeadGate({ agentType, onLeadCaptured }: LeadGateProps) {
         </div>
     );
 }
+
