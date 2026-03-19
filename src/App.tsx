@@ -9,6 +9,7 @@ const Home = lazy(() => import('./pages/Home'));
 const Chat = lazy(() => import('./pages/Chat'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'));
+const KnowledgeBase = lazy(() => import('./pages/admin/KnowledgeBase'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
 
 // Simple loading fallback
@@ -47,6 +48,11 @@ function App() {
               <Route path="/superadmin" element={
                 <ProtectedRoute allowedTypes={['superadmin']}>
                   <SuperAdminWrapper />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/knowledge-base" element={
+                <ProtectedRoute allowedTypes={['superadmin']}>
+                  <KnowledgeBase />
                 </ProtectedRoute>
               } />
               <Route path="/onboarding" element={<Onboarding />} />

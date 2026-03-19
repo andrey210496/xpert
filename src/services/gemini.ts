@@ -13,7 +13,7 @@ interface StreamCallbacks {
     onError: (error: Error) => void;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001' : '');
 
 export async function streamChat(
     messages: ChatMessage[],
@@ -23,8 +23,11 @@ export async function streamChat(
     profile?: any,
     signal?: AbortSignal
 ): Promise<void> {
-    // If no backend URL configured, use demo mode
-    if (!API_BASE_URL) {
+    // Check if we should use demo mode (explicitly requested or via demo profile)
+    const isDemoProfile = profile?.id?.includes('demo');
+    const isExplicitDemo = API_BASE_URL === 'demo';
+
+    if (isDemoProfile || isExplicitDemo) {
         return simulateStreaming(messages, agentType, callbacks, signal);
     }
 

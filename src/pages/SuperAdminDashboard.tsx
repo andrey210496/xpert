@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     BarChart3,
@@ -77,6 +78,7 @@ interface LeadData {
 }
 
 export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashboardProps) {
+    const navigate = useNavigate();
     const { signOut } = useAuth();
     const [activeTab, setActiveTab] = useState<'overview' | 'tenants' | 'leads' | 'settings' | 'agents'>('overview');
     const [searchTerm, setSearchTerm] = useState('');
@@ -286,11 +288,18 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
                         { id: 'tenants', label: 'Condomínios', Icon: Building2 },
                         { id: 'leads', label: 'Leads & Vendas', Icon: Users },
                         { id: 'agents', label: 'Agentes de IA', Icon: Bot },
+                        { id: 'kb', label: 'Base de Conhecimento', Icon: Database, route: '/admin/knowledge-base' },
                         { id: 'settings', label: 'Config. do Sistema', Icon: Settings },
                     ].map((item) => (
                         <button
                             key={item.id}
-                            onClick={() => setActiveTab(item.id as typeof activeTab)}
+                            onClick={() => {
+                                if ('route' in item && item.route) {
+                                    navigate(item.route);
+                                    return;
+                                }
+                                setActiveTab(item.id as typeof activeTab);
+                            }}
                             className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm mb-1 transition-colors cursor-pointer ${activeTab === item.id
                                 ? 'bg-accent/10 text-accent font-medium border border-accent/20'
                                 : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary border border-transparent'
@@ -318,6 +327,12 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
                                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
                             </button>
                         ))}
+                        <button
+                            onClick={() => navigate('/admin/knowledge-base')}
+                            className="px-4 py-2 rounded-lg text-sm whitespace-nowrap cursor-pointer border text-text-secondary border-transparent bg-bg-secondary flex items-center gap-2"
+                        >
+                            <Database size={14} /> Base de Conhecimento
+                        </button>
                     </div>
 
                     {activeTab === 'overview' && (

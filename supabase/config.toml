@@ -1,0 +1,2 @@
+[functions.process-pdf]
+verify_jwt = false
