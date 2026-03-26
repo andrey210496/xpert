@@ -29,7 +29,8 @@ if [ ! -f ".env" ]; then
     echo "  VITE_SUPABASE_URL=https://xxx.supabase.co"
     echo "  VITE_SUPABASE_ANON_KEY=xxx"
     echo "  VITE_API_URL=https://api.seudominio.com"
-    echo "  GEMINI_API_KEY=xxx"
+    echo "  OPENROUTER_API_KEY=xxx"
+    echo "  OPENROUTER_MODEL=openai/gpt-4o-mini"
     echo "  PORT=3001"
     echo "  CORS_ORIGIN=https://seudominio.com"
     exit 1

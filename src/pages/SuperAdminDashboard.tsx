@@ -34,15 +34,18 @@ import { CreateTenantModal } from '../components/superadmin/CreateTenantModal';
 import { EditTenantModal } from '../components/superadmin/EditTenantModal';
 import { LeadDetailsModal } from '../components/superadmin/LeadDetailsModal';
 
-const platformUsageData = [
-    { date: '22/02', tokens: 124000 },
-    { date: '23/02', tokens: 182000 },
-    { date: '24/02', tokens: 158000 },
-    { date: '25/02', tokens: 221000 },
-    { date: '26/02', tokens: 195000 },
-    { date: '27/02', tokens: 248000 },
-    { date: '28/02', tokens: 293000 },
-];
+// Type definitions for the new metrics
+interface PlatformStats {
+    total_users_count: number;
+    total_tokens_consumed_count: number;
+    daily_usage_json: { date: string, tokens: number }[];
+}
+
+interface PlanPrices {
+    starter: number;
+    pro: number;
+    enterprise: number;
+}
 
 interface SuperAdminDashboardProps {
     onNavigateHome: () => void;
@@ -86,7 +89,11 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
     const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
     const [isLoadingTenants, setIsLoadingTenants] = useState(true);
     const [isLoadingLeads, setIsLoadingLeads] = useState(true);
+    const [isLoadingStats, setIsLoadingStats] = useState(true);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null);
+    const [planPrices, setPlanPrices] = useState<PlanPrices>({ starter: 199, pro: 499, enterprise: 1199 });
+    const [isSavingPrices, setIsSavingPrices] = useState(false);
 
     // Knowledge Base integration settings removed (using agents' text-based KB now)
 
@@ -114,14 +121,51 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
         setIsLoadingLeads(false);
     };
 
+    const loadDashboardData = async () => {
+        setIsLoadingStats(true);
+        // Load global usage stats via RPC
+        const { data: statsData, error: statsError } = await supabase.rpc('get_platform_usage_stats');
+        if (!statsError && statsData && statsData[0]) {
+            setPlatformStats(statsData[0]);
+        }
+        
+        // Load plan prices from platform_settings
+        const { data: settingsData } = await supabase
+            .from('platform_settings')
+            .select('value')
+            .eq('key', 'plan_prices')
+            .single();
+        
+        if (settingsData?.value) {
+            setPlanPrices(settingsData.value);
+        }
+        setIsLoadingStats(false);
+    };
+
+    const handleSavePrices = async () => {
+        setIsSavingPrices(true);
+        const { error } = await supabase
+            .from('platform_settings')
+            .upsert({ key: 'plan_prices', value: planPrices });
+        
+        if (error) {
+            alert('Erro ao salvar preços: ' + error.message);
+        } else {
+            alert('Preços atualizados com sucesso!');
+        }
+        setIsSavingPrices(false);
+    };
+
     useEffect(() => {
+        if (activeTab === 'overview' || activeTab === 'settings') {
+            loadDashboardData();
+        }
         if (activeTab === 'tenants' || activeTab === 'overview') {
             loadTenants();
         }
         if (activeTab === 'leads') {
             loadLeads();
         }
-        // KB settings removal: session storage cleanup or ignore
     }, [activeTab]);
 
     // KB action handlers removed
@@ -144,6 +188,12 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
 
     const totalTokensUsed = tenantsList.reduce((acc, t) => acc + ((t.plan_tokens_total || 0) - (t.token_balance || 0)), 0);
     const totalTokensAllocated = tenantsList.reduce((acc, t) => acc + (t.plan_tokens_total || 0), 0);
+
+    const estimatedMRR = tenantsList.reduce((acc, t) => {
+        if (t.status !== 'active') return acc;
+        const price = planPrices[t.plan as keyof PlanPrices] || 0;
+        return acc + price;
+    }, 0);
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -296,10 +346,12 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
                                             <TrendingUp size={16} className="text-accent" />
                                         </div>
                                     </div>
-                                    <div className="text-2xl font-bold text-text-primary">R$ 4.250,00</div>
+                                    <div className="text-2xl font-bold text-text-primary">
+                                        {isLoadingStats ? '...' : estimatedMRR.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                    </div>
                                     <div className="flex items-center gap-1 mt-1 text-success">
                                         <TrendingUp size={14} />
-                                        <span className="text-xs">+12% este mês</span>
+                                        <span className="text-xs">Baseado em planos ativos</span>
                                     </div>
                                 </Card>
 
@@ -341,7 +393,7 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
                                         </div>
                                     </div>
                                     <div className="text-2xl font-bold text-text-primary">
-                                        N/D
+                                        {isLoadingStats ? '...' : (platformStats?.total_users_count || 0)}
                                     </div>
                                     <p className="text-xs text-text-tertiary mt-1">
                                         Moradores, síndicos e funcionários
@@ -357,7 +409,7 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
                                 </div>
                                 <div className="h-[300px] w-full">
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={platformUsageData}>
+                                        <AreaChart data={platformStats?.daily_usage_json || []}>
                                             <defs>
                                                 <linearGradient id="colorTokens" x1="0" y1="0" x2="0" y2="1">
                                                     <stop offset="5%" stopColor="#1A88C9" stopOpacity={0.3} />
@@ -548,12 +600,67 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
                     )}
 
                     {activeTab === 'settings' && (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                             <div>
                                 <h2 className="text-xl font-bold text-text-primary">Configurações do Sistema</h2>
                                 <p className="text-sm text-text-secondary mt-1">Gerencie integrações e configurações globais da plataforma.</p>
                             </div>
 
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <Card variant="default" className="p-6">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="p-2 rounded-lg bg-accent/10 text-accent">
+                                            <TrendingUp size={20} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-bold text-text-primary">Preços dos Planos (Mensal)</h3>
+                                            <p className="text-xs text-text-tertiary">Valores usados no cálculo do MRR global.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        {Object.keys(planPrices).map((plan) => (
+                                            <div key={plan} className="flex flex-col gap-1.5">
+                                                <label className="text-[10px] uppercase font-bold text-text-tertiary tracking-widest px-1">
+                                                    Plano {plan}
+                                                </label>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary text-xs">R$</span>
+                                                    <input
+                                                        type="number"
+                                                        value={planPrices[plan as keyof PlanPrices]}
+                                                        onChange={(e) => setPlanPrices({ ...planPrices, [plan]: Number(e.target.value) })}
+                                                        className="w-full bg-bg-secondary border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/50 transition-colors"
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        <div className="pt-4 border-t border-border mt-6">
+                                            <Button 
+                                                className="w-full" 
+                                                onClick={handleSavePrices} 
+                                                isLoading={isSavingPrices}
+                                            >
+                                                Salvar Configurações
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </Card>
+
+                                <Card variant="default" className="p-6 opacity-50 grayscale pointer-events-none">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="p-2 rounded-lg bg-text-tertiary/10 text-text-tertiary">
+                                            <ShieldAlert size={20} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-bold text-text-primary">Segurança & API</h3>
+                                            <p className="text-xs text-text-tertiary">Configurações de chaves externas.</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-text-tertiary italic">Módulo em desenvolvimento...</p>
+                                </Card>
+                            </div>
                         </motion.div>
                     )}
                 </main>
