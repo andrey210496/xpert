@@ -139,6 +139,9 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
         if (settingsData?.value) {
             setPlanPrices(settingsData.value);
         }
+        
+        console.log('Stats loaded:', statsData?.[0]);
+        console.log('Prices loaded:', settingsData?.value);
         setIsLoadingStats(false);
     };
 
@@ -167,6 +170,9 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
             loadLeads();
         }
     }, [activeTab]);
+
+    console.log('Current Active Tab:', activeTab);
+    console.log('Plan Prices State:', planPrices);
 
     // KB action handlers removed
 
@@ -599,7 +605,7 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
                         </motion.div>
                     )}
 
-                    {activeTab === 'settings' && (
+                    {activeTab === 'settings' && planPrices && (
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                             <div>
                                 <h2 className="text-xl font-bold text-text-primary">Configurações do Sistema</h2>
