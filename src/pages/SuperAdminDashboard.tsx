@@ -140,8 +140,6 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
             setPlanPrices(settingsData.value);
         }
         
-        console.log('Stats loaded:', statsData?.[0]);
-        console.log('Prices loaded:', settingsData?.value);
         setIsLoadingStats(false);
     };
 
@@ -170,9 +168,6 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
             loadLeads();
         }
     }, [activeTab]);
-
-    console.log('Current Active Tab:', activeTab);
-    console.log('Plan Prices State:', planPrices);
 
     // KB action handlers removed
 
