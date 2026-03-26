@@ -25,5 +25,6 @@ app.use('/api', chatRouter);
 
 app.listen(PORT, () => {
     console.log(`[XPERT API] Server running on http://localhost:${PORT}`);
-    console.log(`[XPERT API] Gemini key: ${process.env.GEMINI_API_KEY ? '✅ loaded' : '❌ MISSING'}`);
+    console.log(`[XPERT API] OpenRouter key: ${process.env.OPENROUTER_API_KEY ? '✅ loaded' : '❌ MISSING'}`);
+    console.log(`[XPERT API] OpenRouter model: ${process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini (default)'}`);
 });

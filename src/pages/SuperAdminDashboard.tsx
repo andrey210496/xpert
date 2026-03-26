@@ -352,7 +352,7 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
                             {/* Chart */}
                             <Card variant="default" className="p-5">
                                 <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-sm font-semibold text-text-primary">Consumo Global LLM (Gemini)</h3>
+                                    <h3 className="text-sm font-semibold text-text-primary">Consumo Global LLM (IA)</h3>
                                     <Badge variant="morador">Últimos 7 dias</Badge>
                                 </div>
                                 <div className="h-[300px] w-full">

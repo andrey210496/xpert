@@ -115,7 +115,7 @@ Responda de forma profissional e orientada a negócios. Use português brasileir
     },
 };
 
-export const DEFAULT_MODEL = 'gemini-2.5-flash';
+export const DEFAULT_MODEL = 'openai/gpt-4o-mini';
 
 export const PLANS = {
     trial: { name: 'Trial', tokens: 50_000 },

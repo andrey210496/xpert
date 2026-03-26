@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express';
 
 const router = Router();
 
-const GEMINI_MODEL = 'gemini-2.0-flash';
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini';
 
 interface ChatMessage {
     role: 'user' | 'assistant' | 'system';
@@ -15,34 +15,24 @@ interface ChatRequestBody {
     systemPrompt: string;
 }
 
-function buildGeminiUrl(model: string, apiKey: string): string {
-    return `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
-}
-
-function toGeminiPayload(messages: ChatMessage[], systemPrompt: string) {
-    const contents = messages
-        .filter((m) => m.role !== 'system')
-        .map((m) => ({
-            role: m.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: m.content }],
-        }));
-
+function buildOpenRouterPayload(messages: ChatMessage[], systemPrompt: string) {
     return {
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        contents,
-        generationConfig: {
-            temperature: 0.7,
-            topP: 0.95,
-            maxOutputTokens: 8192,
-        },
+        model: OPENROUTER_MODEL,
+        messages: [
+            { role: 'system', content: systemPrompt },
+            ...messages
+        ],
+        stream: true,
+        temperature: 0.7,
+        max_tokens: 4096,
     };
 }
 
 router.post('/chat', async (req: Request, res: Response): Promise<void> => {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY;
 
     if (!apiKey) {
-        res.status(500).json({ error: 'GEMINI_API_KEY não configurada no servidor' });
+        res.status(500).json({ error: 'OPENROUTER_API_KEY não configurada no servidor' });
         return;
     }
 
@@ -53,11 +43,6 @@ router.post('/chat', async (req: Request, res: Response): Promise<void> => {
         return;
     }
 
-    if (!systemPrompt || typeof systemPrompt !== 'string') {
-        res.status(400).json({ error: 'systemPrompt é obrigatório' });
-        return;
-    }
-
     // Sanitize messages
     const MAX_MSG_LEN = 10_000;
     const sanitized = messages.map((m) => ({
@@ -65,19 +50,24 @@ router.post('/chat', async (req: Request, res: Response): Promise<void> => {
         content: (m.content || '').trim().slice(0, MAX_MSG_LEN),
     }));
 
-    const payload = toGeminiPayload(sanitized, systemPrompt);
+    const payload = buildOpenRouterPayload(sanitized, systemPrompt);
 
     try {
-        const geminiRes = await fetch(buildGeminiUrl(GEMINI_MODEL, apiKey), {
+        const openRouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+                'HTTP-Referer': 'https://xpert-condo.ai', // Opcional, mas recomendado pelo OpenRouter
+                'X-Title': 'XPERT Condo Assistant',
+            },
             body: JSON.stringify(payload),
         });
 
-        if (!geminiRes.ok) {
-            const errorBody = await geminiRes.text().catch(() => '');
-            res.status(geminiRes.status).json({
-                error: `Gemini API error: ${geminiRes.status}`,
+        if (!openRouterRes.ok) {
+            const errorBody = await openRouterRes.text().catch(() => '');
+            res.status(openRouterRes.status).json({
+                error: `OpenRouter API error: ${openRouterRes.status}`,
                 details: errorBody,
             });
             return;
@@ -89,15 +79,15 @@ router.post('/chat', async (req: Request, res: Response): Promise<void> => {
         res.setHeader('Connection', 'keep-alive');
         res.setHeader('X-Accel-Buffering', 'no');
 
-        const reader = geminiRes.body?.getReader();
+        const reader = openRouterRes.body?.getReader();
         if (!reader) {
-            res.status(500).json({ error: 'No response body from Gemini' });
+            res.status(500).json({ error: 'No response body from OpenRouter' });
             return;
         }
 
         const decoder = new TextDecoder();
 
-        // Pipe Gemini SSE stream directly to client
+        // Pipe OpenRouter SSE stream directly to client
         const pump = async () => {
             while (true) {
                 const { done, value } = await reader.read();
@@ -117,7 +107,7 @@ router.post('/chat', async (req: Request, res: Response): Promise<void> => {
     } catch (error) {
         if (!res.headersSent) {
             res.status(500).json({
-                error: 'Erro interno ao conectar com Gemini',
+                error: 'Erro interno ao conectar com OpenRouter',
                 details: error instanceof Error ? error.message : 'Unknown',
             });
         }

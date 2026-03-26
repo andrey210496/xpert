@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Message, ProfileType, Conversation } from '../types';
-import { streamChat } from '../services/gemini';
+import { streamChat } from '../services/chatService';
 import { generateId } from '../utils/formatters';
 import { GUEST_MESSAGE_LIMIT } from '../config/agents';
 import { useAuth } from '../contexts/AuthContext';
