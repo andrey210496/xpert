@@ -42,16 +42,21 @@ echo "✅ .env encontrado"
 echo "📦 Instalando dependências..."
 npm install
 
-# --- 3. Build do Frontend (Vite) ---
+# --- 3. Deploy Supabase Edge Functions ---
+echo "☁️ Fazendo deploy das Edge Functions (Supabase)..."
+npx supabase functions deploy ingest-knowledge
+npx supabase functions deploy query-knowledge
+
+# --- 4. Build do Frontend (Vite) ---
 echo "🏗️ Build do frontend..."
 npm run build
 
-# --- 4. Permissões do Nginx ---
+# --- 5. Permissões do Nginx ---
 echo "🔑 Ajustando permissões..."
 sudo chown -R www-data:www-data "$DIST_DIR"
 sudo chmod -R 755 "$DIST_DIR"
 
-# --- 5. Configurar serviço systemd (apenas na primeira vez) ---
+# --- 6. Configurar serviço systemd (apenas na primeira vez) ---
 if [ ! -f "/etc/systemd/system/${SERVICE_NAME}.service" ]; then
     echo "📄 Criando serviço systemd: ${SERVICE_NAME}..."
     sudo tee /etc/systemd/system/${SERVICE_NAME}.service > /dev/null <<UNIT
@@ -77,7 +82,7 @@ UNIT
     sudo systemctl enable ${SERVICE_NAME}
 fi
 
-# --- 6. Reiniciar backend ---
+# --- 7. Reiniciar backend ---
 echo "🔄 Reiniciando backend..."
 sudo systemctl restart ${SERVICE_NAME}
 

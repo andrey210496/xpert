@@ -4,7 +4,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { Card, Button, Badge } from '../ui';
 import { FileText, Save, Info, CheckCircle2 } from 'lucide-react';
-import { KnowledgeUpload } from '../admin/KnowledgeUpload';
 
 export function TenantSettings() {
     const { tenant, refreshAuthData } = useAuth();
@@ -97,13 +96,6 @@ export function TenantSettings() {
                 </div>
             </Card>
 
-            <div className="space-y-4">
-                <div>
-                    <h3 className="text-sm font-bold text-text-tertiary uppercase tracking-widest font-mono">Base de Conhecimento (Documentos)</h3>
-                    <p className="text-xs text-text-tertiary mt-1">Gerencie documentos PDF para consulta automática da inteligência artificial.</p>
-                </div>
-                <KnowledgeUpload tenantId={tenant?.id || ''} />
-            </div>
 
             {/* Informações Gerais do Condomínio (Read-only por enquanto) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

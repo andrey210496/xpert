@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button, Badge } from '../ui';
-import { Bot, Save, Check, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Bot, Save, Check, AlertCircle, ChevronDown, ChevronUp, Book } from 'lucide-react';
+import { KnowledgeUpload } from '../admin/KnowledgeUpload';
 import { fetchAgentConfigs, updateAgentConfig } from '../../services/agentConfigService';
 import type { AgentDbConfig } from '../../types';
 
@@ -245,11 +246,25 @@ export function AgentsConfig() {
                                         />
                                     </div>
 
-                                    {/* Knowledge Base */}
+                                    {/* Knowledge Base (PDF - Per Agent Role) */}
+                                    <div className="p-4 rounded-xl border border-border bg-bg-tertiary/20 space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <Book size={16} className="text-accent" />
+                                            <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider font-display">
+                                                Conhecimento em PDF (RAG — {config.display_name})
+                                            </h3>
+                                        </div>
+                                        <p className="text-[10px] text-text-tertiary">
+                                            Suba manuais e documentos específicos para este papel. Eles ficarão disponíveis para <strong>todos</strong> os {config.display_name}s da plataforma.
+                                        </p>
+                                        <KnowledgeUpload tenantId={`agent:${config.agent_type}`} />
+                                    </div>
+
+                                    {/* Knowledge Base (Texto) */}
                                     <div className="flex flex-col gap-1.5">
                                         <div className="flex items-center justify-between">
                                             <label className="text-xs font-bold uppercase tracking-widest text-text-tertiary">
-                                                Base de Conhecimento
+                                                Base de Conhecimento (Texto)
                                             </label>
                                             <span className="text-[10px] text-text-tertiary font-mono">
                                                 {state.knowledge_base.length.toLocaleString()} chars
@@ -260,10 +275,10 @@ export function AgentsConfig() {
                                             onChange={(e) => updateField(config.agent_type, 'knowledge_base', e.target.value)}
                                             rows={6}
                                             className="w-full bg-bg-primary border border-border rounded-lg px-4 py-3 text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 resize-y font-mono leading-relaxed transition-all"
-                                            placeholder="Cole aqui regras do condomínio, FAQs, informações específicas que o agente deve conhecer..."
+                                            placeholder="Cole aqui regras gerais que o agente deve sempre saber..."
                                         />
                                         <p className="text-[10px] text-text-tertiary">
-                                            💡 Esse conteúdo será injetado junto ao prompt do agente em cada conversa. Use para regras específicas, FAQs, dados do negócio.
+                                            💡 Esse conteúdo será injetado junto ao prompt do agente. Use para regras rápidas ou FAQs globais.
                                         </p>
                                     </div>
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { UploadCloud, FileCheck, AlertCircle, Info } from 'lucide-react';
-import { Button, ProgressBar, Card } from '../ui';
+import { motion } from 'framer-motion';
+import { ProgressBar, Card } from '../ui';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;

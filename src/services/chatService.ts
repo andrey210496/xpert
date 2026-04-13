@@ -42,7 +42,7 @@ export async function streamChat(
     if (tenant?.id) {
         const lastUserMessage = messages[messages.length - 1]?.content;
         if (lastUserMessage) {
-            const { context } = await fetchRelevantContext(lastUserMessage, tenant.id);
+            const { context } = await fetchRelevantContext(lastUserMessage, `agent:${agentType}`);
             if (context) {
                 ragContext = context;
             }
