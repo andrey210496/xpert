@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { pipeline, env } from "https://esm.sh/@xenova/transformers@2.17.2?target=deno";
+import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm";
 
 const QDRANT_URL = Deno.env.get("QDRANT_URL")!;
 const QDRANT_API_KEY = Deno.env.get("QDRANT_API_KEY") ?? "";
