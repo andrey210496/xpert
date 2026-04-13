@@ -1,5 +1,6 @@
 import { AGENT_CONFIGS } from '../config/agents';
 import { getAgentConfig } from './agentConfigService';
+import { fetchRelevantContext } from './knowledgeService';
 import type { ProfileType } from '../types';
 
 interface ChatMessage {
@@ -36,7 +37,24 @@ export async function streamChat(
     const dbConfig = await getAgentConfig(agentType);
     let systemPrompt = dbConfig?.system_prompt || AGENT_CONFIGS[agentType]?.systemPrompt || '';
 
-    if (dbConfig?.knowledge_base) {
+    // Fetch RAG context if tenant exists
+    let ragContext = '';
+    if (tenant?.id) {
+        const lastUserMessage = messages[messages.length - 1]?.content;
+        if (lastUserMessage) {
+            const { context } = await fetchRelevantContext(lastUserMessage, tenant.id);
+            if (context) {
+                ragContext = context;
+            }
+        }
+    }
+
+    if (dbConfig?.knowledge_base || ragContext) {
+        const combinedKnowledge = [
+            dbConfig?.knowledge_base ? `REGRAS FIXAS DO AGENTE:\n${dbConfig.knowledge_base}` : '',
+            ragContext ? `BASE DE CONHECIMENTO DO CONDOMÍNIO (RAG):\n${ragContext}` : ''
+        ].filter(Boolean).join('\n\n---\n\n');
+
         systemPrompt = `REGRAS OBRIGATÓRIAS (PRIORIDADE MÁXIMA):
 1. Você DEVE responder EXCLUSIVAMENTE com base na "BASE DE CONHECIMENTO" fornecida abaixo.
 2. NÃO use seu conhecimento geral ou treinamento para responder perguntas. Sua ÚNICA fonte de informação é a base de conhecimento.
@@ -50,7 +68,7 @@ ${systemPrompt}
 
 BASE DE CONHECIMENTO (responda SOMENTE com base neste conteúdo):
 ---
-${dbConfig.knowledge_base}
+${combinedKnowledge}
 ---`;
     }
 

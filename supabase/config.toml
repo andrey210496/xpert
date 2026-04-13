@@ -1,2 +1,8 @@
 [functions.process-pdf]
 verify_jwt = false
+
+[functions.ingest-knowledge]
+verify_jwt = false
+
+[functions.query-knowledge]
+verify_jwt = false
