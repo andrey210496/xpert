@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Modal, Button } from '../ui';
 import { supabase } from '../../services/supabase';
-import { Building2, ChevronDown, Zap, PlusCircle, Trash2, AlertTriangle, Check } from 'lucide-react';
+import { Building2, ChevronDown, Zap, PlusCircle, Trash2, AlertTriangle, Check, Book } from 'lucide-react';
+import { KnowledgeUpload } from '../admin/KnowledgeUpload';
 
 interface TenantData {
     id: string;
@@ -353,10 +354,21 @@ export function EditTenantModal({ isOpen, onClose, tenant, onSuccess }: EditTena
                     <textarea
                         value={form.tenant_context}
                         onChange={(e) => setForm({ ...form, tenant_context: e.target.value })}
-                        rows={4}
+                        rows={3}
                         placeholder="Ex: Horário de silêncio: 22h–7h. Reunião de condomínio: toda primeira sexta do mês. Taxa condominial: R$ 450,00..."
                         className="w-full px-3 py-2 bg-bg-secondary border border-border rounded-md text-text-primary text-sm placeholder:text-text-tertiary outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 resize-none transition-all"
                     />
+                </div>
+
+                {/* Base de Conhecimento (RAG) */}
+                <div className="p-4 rounded-xl border border-border bg-bg-secondary/50 space-y-4">
+                    <div className="flex items-center gap-2">
+                        <Book size={16} className="text-accent" />
+                        <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider font-display">
+                            Base de Conhecimento (PDFs)
+                        </h3>
+                    </div>
+                    <KnowledgeUpload tenantId={tenant.id} />
                 </div>
 
                 <div className="flex gap-3 justify-end pt-2">
