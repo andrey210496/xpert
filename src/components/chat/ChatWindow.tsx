@@ -442,35 +442,6 @@ function ChatSidebar({
         }
     };
 
-    const handleShare = async (conv: Conversation) => {
-        setMenuOpenId(null);
-        setMenuPosition(null);
-
-        try {
-            const { supabase } = await import('../../services/supabase');
-            const { data: msgs, error } = await supabase
-                .from('messages')
-                .select('role, content, created_at')
-                .eq('conversation_id', conv.id)
-                .order('created_at', { ascending: true });
-
-            if (error || !msgs || msgs.length === 0) {
-                alert('Conversa sem mensagens para compartilhar.');
-                return;
-            }
-
-            const text = `📋 *${conv.title || 'Conversa XPERT'}*\n\n` +
-                msgs.map((m: any) => {
-                    const role = m.role === 'user' ? '👤' : '🤖';
-                    return `${role} ${m.content}`;
-                }).join('\n\n');
-
-            await navigator.clipboard.writeText(text);
-            alert('✅ Conversa copiada! Cole onde quiser (WhatsApp, e-mail, etc.).');
-        } catch {
-            alert('Erro ao copiar conversa.');
-        }
-    };
 
     return (
         <>
@@ -589,12 +560,6 @@ function ChatSidebar({
                 >
                     {conversations.find(c => c.id === menuOpenId) && (
                         <>
-                            <button
-                                onClick={() => handleShare(conversations.find(c => c.id === menuOpenId)!)}
-                                className="w-full text-left px-3.5 py-2.5 text-[11px] font-bold text-text-secondary hover:bg-bg-hover flex items-center gap-2.5 transition-colors"
-                            >
-                                <Share2 size={13} className="text-text-tertiary" /> COMPARTILHAR
-                            </button>
                             <button
                                 onClick={() => handleExport(conversations.find(c => c.id === menuOpenId)!)}
                                 className="w-full text-left px-3.5 py-2.5 text-[11px] font-bold text-text-secondary hover:bg-bg-hover flex items-center gap-2.5 transition-colors"
