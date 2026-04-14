@@ -1,6 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm";
-import pdfParse from "https://cdn.jsdelivr.net/npm/pdf-parse@1.1.1/+esm";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -82,7 +80,7 @@ async function upsertToQdrant(points: object[], url: string, apiKey: string): Pr
   }
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   // 1. Prioridade máxima: Responder CORS OPTIONS imediatamente
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -116,8 +114,9 @@ serve(async (req: Request) => {
     }
 
     const buffer = await file.arrayBuffer();
-    const pdfData = await pdfParse(Buffer.from(buffer));
-    const chunks = chunkText(pdfData.text);
+    // Alternativa simples: extração de texto bruta para PDF (Deno-friendly)
+    const text = new TextDecoder().decode(buffer).replace(/[^\x20-\x7E\s]/g, ' '); 
+    const chunks = chunkText(text);
 
     console.log(`PDF "${file.name}": ${chunks.length} chunks`);
 

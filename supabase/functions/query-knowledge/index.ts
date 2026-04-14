@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm";
 
 const corsHeaders = {
@@ -78,7 +77,7 @@ async function searchQdrant(
   }));
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   // 1. Prioridade máxima: Responder CORS OPTIONS imediatamente
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
