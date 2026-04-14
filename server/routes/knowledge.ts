@@ -96,7 +96,7 @@ router.post('/ingest', (req: Request, res: Response, next: any) => {
             console.error('[Knowledge Multer Error]:', err);
             return res.status(400).json({ 
                 error: err.code === 'LIMIT_FILE_SIZE' 
-                    ? 'Arquivo muito grande. Limite máximo: 50MB.' 
+                    ? 'Arquivo muito grande. Limite máximo: 200MB.' 
                     : `Erro no upload: ${err.message}` 
             });
         }
@@ -119,7 +119,7 @@ router.post('/ingest', (req: Request, res: Response, next: any) => {
         
         console.log(`[Knowledge] Split into ${chunks.length} chunks`);
 
-        const BATCH_SIZE = 5;
+        const BATCH_SIZE = 50;
         let totalProcessed = 0;
 
         for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
@@ -134,12 +134,18 @@ router.post('/ingest', (req: Request, res: Response, next: any) => {
                     source: file.originalname,
                     chunk_index: i + j,
                     content,
+                    created_at: new Date().toISOString()
                 },
             }));
 
             await upsertToQdrant(points);
             totalProcessed += batch.length;
             console.log(`[Knowledge] Progress: ${totalProcessed}/${chunks.length}`);
+
+            // Pequena pausa para não estressar os sockets da rede
+            if (i + BATCH_SIZE < chunks.length) {
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
         }
 
         res.json({ success: true, chunks: totalProcessed, source: file.originalname });
