@@ -7,7 +7,7 @@ import { v5 as uuidv5 } from 'uuid';
 const router = Router();
 const upload = multer({ 
     storage: multer.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
 });
 
 const QDRANT_URL = process.env.QDRANT_URL;
