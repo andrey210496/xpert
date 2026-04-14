@@ -8,22 +8,21 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-const QDRANT_URL = Deno.env.get("QDRANT_URL")!;
-const QDRANT_API_KEY = Deno.env.get("QDRANT_API_KEY") ?? "";
 const COLLECTION = "xpert_knowledge";
-
 const CHUNK_SIZE = 800;
 const CHUNK_OVERLAP = 150;
 
-// Configurações para rodar em ambiente Deno / Supabase
-env.allowLocalModels = false;
-env.useBrowserCache = false;
+
 
 let embedder: Awaited<ReturnType<typeof pipeline>> | null = null;
 
 async function getEmbedder() {
   if (!embedder) {
     console.log("Iniciando carregamento do modelo gte-small...");
+    // Configurações para rodar em ambiente Deno / Supabase
+    env.allowLocalModels = false;
+    env.useBrowserCache = false;
+    
     embedder = await pipeline(
       "feature-extraction",
       "Xenova/gte-small",
@@ -67,12 +66,12 @@ function makePointId(tenantId: string, source: string, chunkIndex: number): stri
   return hash.toString();
 }
 
-async function upsertToQdrant(points: object[]): Promise<void> {
-  const res = await fetch(`${QDRANT_URL}/collections/${COLLECTION}/points?wait=true`, {
+async function upsertToQdrant(points: object[], url: string, apiKey: string): Promise<void> {
+  const res = await fetch(`${url}/collections/${COLLECTION}/points?wait=true`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      ...(QDRANT_API_KEY ? { "api-key": QDRANT_API_KEY } : {}),
+      ...(apiKey ? { "api-key": apiKey } : {}),
     },
     body: JSON.stringify({ points }),
   });
@@ -84,9 +83,20 @@ async function upsertToQdrant(points: object[]): Promise<void> {
 }
 
 serve(async (req: Request) => {
-  // Handle CORS
+  // 1. Prioridade máxima: Responder CORS OPTIONS imediatamente
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
+  }
+
+  const QDRANT_URL = Deno.env.get("QDRANT_URL");
+  const QDRANT_API_KEY = Deno.env.get("QDRANT_API_KEY") ?? "";
+
+  if (!QDRANT_URL) {
+    console.error("ERRO: QDRANT_URL não configurada nos secrets.");
+    return new Response(
+      JSON.stringify({ error: "Configuração do servidor incompleta (QDRANT_URL)" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 
   if (req.method !== "POST") {
@@ -129,7 +139,7 @@ serve(async (req: Request) => {
         },
       }));
 
-      await upsertToQdrant(points);
+      await upsertToQdrant(points, QDRANT_URL, QDRANT_API_KEY);
       total += batch.length;
       console.log(`Progresso: ${total}/${chunks.length}`);
     }
