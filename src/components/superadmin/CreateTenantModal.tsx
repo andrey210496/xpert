@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Modal, Input, Button } from '../ui';
 import { supabase } from '../../services/supabase';
-import { Building2, ChevronDown } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 
 interface CreateTenantModalProps {
     isOpen: boolean;

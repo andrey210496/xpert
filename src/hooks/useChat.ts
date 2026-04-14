@@ -68,7 +68,7 @@ export function useChat(agentType: ProfileType): UseChatReturn {
         };
 
         fetchConversations();
-    }, [isAuthenticated, profile, agentType, getLocalHistory]);
+    }, [isAuthenticated, profile, agentType]);
 
     // Load messages when currentConversation changes
     useEffect(() => {

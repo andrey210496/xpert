@@ -25,7 +25,6 @@ import {
 import { Card, Badge } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { formatTokenCount } from '../utils/tokenCalculator';
-import type { ProfileType } from '../types';
 import { UserManagement } from '../components/dashboard/UserManagement';
 import { ChatWindow } from '../components/chat/ChatWindow';
 import { TenantSettings } from '../components/dashboard/TenantSettings';

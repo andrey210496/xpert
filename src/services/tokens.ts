@@ -1,4 +1,4 @@
-import { isSupabaseConfigured, supabase } from './supabase';
+import { supabase } from './supabase';
 
 export async function checkTokenBalance(tenantId: string): Promise<{ hasBalance: boolean; balance: number }> {
 

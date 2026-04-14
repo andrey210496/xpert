@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from './supabase';
+import { supabase } from './supabase';
 import type { AgentDbConfig } from '../types';
 
 let configCache: AgentDbConfig[] | null = null;
