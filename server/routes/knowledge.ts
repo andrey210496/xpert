@@ -74,8 +74,21 @@ async function upsertToQdrant(points: any[]) {
     }
 }
 
-// ROUTE: Ingest PDF
-router.post('/ingest', upload.single('file'), async (req: Request, res: Response): Promise<void> => {
+// ROUTE: Ingest PDF — com tratamento correto de erros do multer
+router.post('/ingest', (req: Request, res: Response, next: any) => {
+    upload.single('file')(req, res, (err: any) => {
+        if (err) {
+            // Erro vindo do multer (ex: arquivo muito grande)
+            console.error('[Knowledge Multer Error]:', err);
+            return res.status(400).json({ 
+                error: err.code === 'LIMIT_FILE_SIZE' 
+                    ? 'Arquivo muito grande. Limite máximo: 50MB.' 
+                    : `Erro no upload: ${err.message}` 
+            });
+        }
+        next();
+    });
+}, async (req: Request, res: Response): Promise<void> => {
     try {
         const file = req.file;
         const tenantId = req.body.tenant_id;
