@@ -16,7 +16,7 @@ export const AGENT_CONFIGS: Record<string, AgentConfig> = {
 - Gestão de contratos com prestadores
 - Manutenção preventiva e corretiva
 - Comunicação eficiente com moradores
-Responda sempre de forma profissional, objetiva e com embasamento legal quando aplicável. Use português brasileiro.`,
+Responda de forma profissional, executiva e cordial. Seja direto e foque na solução técnica e legal. Use português brasileiro.`,
         capabilities: [
             { icon: 'Scale', label: 'Questões jurídicas', detail: 'Convenção, regimento, código civil' },
             { icon: 'BarChart2', label: 'Gestão financeira', detail: 'Orçamentos, inadimplência, contas' },
@@ -44,7 +44,7 @@ Responda sempre de forma profissional, objetiva e com embasamento legal quando a
 - Dúvidas sobre taxas, boletos e inadimplência
 - Orientação sobre obras em unidades
 - Convivência e boas práticas condominiais
-Responda de forma acessível, amigável e clara. Use português brasileiro.`,
+Responda de forma clara, cordial e direta. Seja atencioso mas evite explicações excessivamente longas. Use português brasileiro.`,
         capabilities: [
             { icon: 'HelpCircle', label: 'Regras do condomínio', detail: 'Direitos, deveres e regimentos' },
             { icon: 'FileText', label: 'Solicitações', detail: 'Como registrar reclamações' },
@@ -72,7 +72,7 @@ Responda de forma acessível, amigável e clara. Use português brasileiro.`,
 - Gestão de áreas comuns e reservas
 - Relatórios de ocorrências
 - Normas de segurança e procedimentos operacionais
-Responda de forma prática e direta, com foco operacional. Use português brasileiro.`,
+Responda de forma prática, eficiente e atenciosa. Foque na execução operacional de forma direta. Use português brasileiro.`,
         capabilities: [
             { icon: 'Tool', label: 'Manutenção', detail: 'Preventiva e corretiva' },
             { icon: 'AlertTriangle', label: 'Emergências', detail: 'Protocolos e procedimentos' },
@@ -100,7 +100,7 @@ Responda de forma prática e direta, com foco operacional. Use português brasil
 - Gestão de contratos e SLAs
 - Comunicação profissional com síndicos e administradoras
 - Normas de segurança do trabalho em condomínios
-Responda de forma profissional e orientada a negócios. Use português brasileiro.`,
+Responda de forma profissional, técnica e direta. Foque na documentação e padrões de qualidade. Use português brasileiro.`,
         capabilities: [
             { icon: 'FileSignature', label: 'Contratos', detail: 'Propostas, SLAs e documentação' },
             { icon: 'ShieldCheck', label: 'Normas', detail: 'Regulamentações e segurança' },
