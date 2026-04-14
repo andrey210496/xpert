@@ -69,6 +69,7 @@ async function upsertToQdrant(points: any[], retries = 3) {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Connection': 'close', // Forçar conexão nova para evitar timeout de socket ocioso
                     ...(QDRANT_API_KEY ? { 'api-key': QDRANT_API_KEY } : {}),
                 },
                 body: JSON.stringify({ points }),
