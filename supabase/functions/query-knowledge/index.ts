@@ -1,6 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
 const QDRANT_URL = Deno.env.get("QDRANT_URL")!;
 const QDRANT_API_KEY = Deno.env.get("QDRANT_API_KEY") ?? "";
 const COLLECTION = "xpert_knowledge";
@@ -75,10 +81,12 @@ async function searchQdrant(
 serve(async (req: Request) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': '*' } });
+    return new Response('ok', { headers: corsHeaders });
   }
 
-  if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
+  if (req.method !== "POST") {
+    return new Response("Method not allowed", { status: 405, headers: corsHeaders });
+  }
 
   try {
     const {
@@ -91,7 +99,7 @@ serve(async (req: Request) => {
     if (!question || !tenant_id) {
       return new Response(
         JSON.stringify({ error: "Campos 'question' e 'tenant_id' são obrigatórios" }),
-        { status: 400, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -101,7 +109,7 @@ serve(async (req: Request) => {
     if (chunks.length === 0) {
       return new Response(
         JSON.stringify({ context: null, sources: [] }),
-        { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -114,13 +122,13 @@ serve(async (req: Request) => {
         context,
         sources: chunks.map((c) => ({ source: c.source, similarity: c.similarity })),
       }),
-      { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
     console.error(err);
     return new Response(
       JSON.stringify({ error: String(err) }),
-      { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

@@ -2,6 +2,12 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm";
 import pdfParse from "https://cdn.jsdelivr.net/npm/pdf-parse@1.1.1/+esm";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
 const QDRANT_URL = Deno.env.get("QDRANT_URL")!;
 const QDRANT_API_KEY = Deno.env.get("QDRANT_API_KEY") ?? "";
 const COLLECTION = "xpert_knowledge";
@@ -80,10 +86,12 @@ async function upsertToQdrant(points: object[]): Promise<void> {
 serve(async (req: Request) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': '*' } });
+    return new Response('ok', { headers: corsHeaders });
   }
 
-  if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
+  if (req.method !== "POST") {
+    return new Response("Method not allowed", { status: 405, headers: corsHeaders });
+  }
 
   try {
     const formData = await req.formData();
@@ -93,7 +101,7 @@ serve(async (req: Request) => {
     if (!file || !tenantId) {
       return new Response(
         JSON.stringify({ error: "Campos 'file' e 'tenant_id' são obrigatórios" }),
-        { status: 400, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -128,13 +136,13 @@ serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({ success: true, chunks: total, source: file.name }),
-      { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
     console.error(err);
     return new Response(
       JSON.stringify({ error: String(err) }),
-      { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
