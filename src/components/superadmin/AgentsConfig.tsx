@@ -185,29 +185,29 @@ export function AgentsConfig() {
                                 onClick={() => setExpandedAgent(isExpanded ? null : config.agent_type)}
                                 className="w-full flex items-center justify-between p-4 cursor-pointer hover:bg-bg-tertiary/50 transition-colors"
                             >
-                                    <div
-                                        className="w-10 h-10 rounded-xl flex items-center justify-center"
-                                        style={{ backgroundColor: `${meta.color}15` }}
-                                    >
-                                        <meta.icon size={20} style={{ color: meta.color }} />
-                                    </div>
-                                    <div className="text-left">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-semibold text-text-primary">
-                                                {config.display_name}
-                                            </span>
-                                            <Badge variant={meta.badge as any}>
-                                                {config.agent_type}
-                                            </Badge>
-                                            {!state.is_active && (
-                                                <Badge variant="neutral">Desativado</Badge>
-                                            )}
-                                        </div>
-                                        <span className="text-xs text-text-tertiary">
-                                            Papel sistêmico atualizado
-                                        </span>
-                                    </div>
+                                <div
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                                    style={{ backgroundColor: `${meta.color}15` }}
+                                >
+                                    <meta.icon size={20} style={{ color: meta.color }} />
+                                </div>
+                                <div className="text-left">
                                     <div className="flex items-center gap-2">
+                                        <span className="text-sm font-semibold text-text-primary">
+                                            {config.display_name}
+                                        </span>
+                                        <Badge variant={meta.badge as any}>
+                                            {config.agent_type}
+                                        </Badge>
+                                        {!state.is_active && (
+                                            <Badge variant="neutral">Desativado</Badge>
+                                        )}
+                                    </div>
+                                    <span className="text-xs text-text-tertiary">
+                                        Papel sistêmico atualizado
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
                                     {hasChanges(config.agent_type) && (
                                         <span className="w-2 h-2 rounded-full bg-warning" />
                                     )}
@@ -225,10 +225,10 @@ export function AgentsConfig() {
                             {/* Expanded Content */}
                             {isExpanded && (
                                 <div className="border-t border-border flex flex-col bg-bg-secondary p-4 gap-3">
-                                    
+
                                     {/* SECTION: INSTRUCTIONS */}
                                     <div className="rounded-xl border border-border bg-bg-primary overflow-hidden transition-all">
-                                        <button 
+                                        <button
                                             onClick={() => toggleSection(config.agent_type, 'behavior')}
                                             className="w-full flex items-center justify-between p-4 cursor-pointer hover:bg-bg-tertiary/30 transition-colors"
                                         >
@@ -238,9 +238,9 @@ export function AgentsConfig() {
                                             </div>
                                             {isSectionOpen(config.agent_type, 'behavior') ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                         </button>
-                                        
+
                                         {isSectionOpen(config.agent_type, 'behavior') && (
-                                            <motion.div 
+                                            <motion.div
                                                 initial={{ height: 0, opacity: 0 }}
                                                 animate={{ height: 'auto', opacity: 1 }}
                                                 className="px-4 pb-5 space-y-5 border-t border-border/50 pt-5"
@@ -279,19 +279,19 @@ export function AgentsConfig() {
 
                                     {/* SECTION: PDF KNOWLEDGE */}
                                     <div className="rounded-xl border border-border bg-bg-primary overflow-hidden transition-all">
-                                        <button 
+                                        <button
                                             onClick={() => toggleSection(config.agent_type, 'documents')}
                                             className="w-full flex items-center justify-between p-4 cursor-pointer hover:bg-bg-tertiary/30 transition-colors"
                                         >
                                             <div className="flex items-center gap-2">
                                                 <Info size={14} className="text-accent" />
-                                                <span className="text-xs font-bold uppercase tracking-wider text-text-primary">Biblioteca de Documentos (PDF)</span>
+                                                <span className="text-xs font-bold uppercase tracking-wider text-text-primary">Base de Conhecimento (PDF)</span>
                                             </div>
                                             {isSectionOpen(config.agent_type, 'documents') ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                         </button>
-                                        
+
                                         {isSectionOpen(config.agent_type, 'documents') && (
-                                            <motion.div 
+                                            <motion.div
                                                 initial={{ height: 0, opacity: 0 }}
                                                 animate={{ height: 'auto', opacity: 1 }}
                                                 className="px-4 pb-5 border-t border-border/50 pt-3"
@@ -303,7 +303,7 @@ export function AgentsConfig() {
 
                                     {/* SECTION: TEXT KNOWLEDGE */}
                                     <div className="rounded-xl border border-border bg-bg-primary overflow-hidden transition-all">
-                                        <button 
+                                        <button
                                             onClick={() => toggleSection(config.agent_type, 'text_base')}
                                             className="w-full flex items-center justify-between p-4 cursor-pointer hover:bg-bg-tertiary/30 transition-colors"
                                         >
@@ -313,9 +313,9 @@ export function AgentsConfig() {
                                             </div>
                                             {isSectionOpen(config.agent_type, 'text_base') ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                         </button>
-                                        
+
                                         {isSectionOpen(config.agent_type, 'text_base') && (
-                                            <motion.div 
+                                            <motion.div
                                                 initial={{ height: 0, opacity: 0 }}
                                                 animate={{ height: 'auto', opacity: 1 }}
                                                 className="px-4 pb-5 space-y-4 border-t border-border/50 pt-5"
@@ -360,7 +360,7 @@ export function AgentsConfig() {
                                             <Save size={14} /> Salvar Alterações
                                         </Button>
                                     </div>
-                                    
+
                                     {state.error && (
                                         <div className="text-[10px] text-error bg-error/5 border border-error/20 rounded-md px-3 py-2">
                                             {state.error}
