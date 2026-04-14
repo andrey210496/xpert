@@ -118,10 +118,7 @@ Responda de forma profissional e orientada a negócios. Use português brasileir
 export const DEFAULT_MODEL = 'openai/gpt-4o-mini';
 
 export const PLANS = {
-    trial: { name: 'Trial', tokens: 50_000 },
-    starter: { name: 'Starter', tokens: 500_000 },
-    pro: { name: 'Pro', tokens: 2_000_000 },
-    enterprise: { name: 'Enterprise', tokens: 10_000_000 },
+    premium: { name: 'Premium', tokens: 1_000_000 },
 };
 
 export const GUEST_MESSAGE_LIMIT = 3;

@@ -1,10 +1,6 @@
 import { isSupabaseConfigured, supabase } from './supabase';
 
 export async function checkTokenBalance(tenantId: string): Promise<{ hasBalance: boolean; balance: number }> {
-    if (!isSupabaseConfigured()) {
-        // Demo mode — unlimited tokens
-        return { hasBalance: true, balance: 999_999 };
-    }
 
     const { data, error } = await supabase
         .from('tenants')
@@ -28,10 +24,6 @@ export async function recordTokenUsage(params: {
     model: string;
     profileType: string;
 }): Promise<boolean> {
-    if (!isSupabaseConfigured()) {
-        // Demo mode — skip recording
-        return true;
-    }
 
     const tokensTotal = params.tokensInput + params.tokensOutput;
 
@@ -70,9 +62,6 @@ export async function checkDailyLimit(
     profileType: string,
     currentUsage: number
 ): Promise<{ withinLimit: boolean; limit: number | null }> {
-    if (!isSupabaseConfigured()) {
-        return { withinLimit: true, limit: null };
-    }
 
     const { data, error } = await supabase
         .from('token_limits')

@@ -6,7 +6,6 @@ let cacheTimestamp = 0;
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export async function fetchAgentConfigs(): Promise<AgentDbConfig[]> {
-    if (!isSupabaseConfigured()) return [];
 
     const now = Date.now();
     if (configCache && now - cacheTimestamp < CACHE_TTL) {
@@ -34,9 +33,6 @@ export async function updateAgentConfig(
     agentType: string,
     updates: { system_prompt?: string; knowledge_base?: string; is_active?: boolean; display_name?: string }
 ): Promise<{ success: boolean; error?: string }> {
-    if (!isSupabaseConfigured()) {
-        return { success: false, error: 'Supabase não configurado' };
-    }
 
     const { error } = await supabase
         .from('agent_configs')

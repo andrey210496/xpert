@@ -31,32 +31,10 @@ import { ChatWindow } from '../components/chat/ChatWindow';
 import { TenantSettings } from '../components/dashboard/TenantSettings';
 
 
-// Demo data
-const tokenUsageData = [
-    { date: '22/02', total: 12400, admin: 3200, morador: 5100, zelador: 2800, prestador: 1300 },
-    { date: '23/02', total: 18200, admin: 4100, morador: 7300, zelador: 4200, prestador: 2600 },
-    { date: '24/02', total: 15800, admin: 3800, morador: 6200, zelador: 3500, prestador: 2300 },
-    { date: '25/02', total: 22100, admin: 5200, morador: 8400, zelador: 5000, prestador: 3500 },
-    { date: '26/02', total: 19500, admin: 4600, morador: 7800, zelador: 4100, prestador: 3000 },
-    { date: '27/02', total: 24800, admin: 5800, morador: 9200, zelador: 5500, prestador: 4300 },
-    { date: '28/02', total: 21300, admin: 4900, morador: 8100, zelador: 4800, prestador: 3500 },
-];
-
-const profileDistribution = [
-    { name: 'Morador', value: 52200, color: '#10B981' },
-    { name: 'Admin', value: 31600, color: '#3B82F6' },
-    { name: 'Zelador', value: 29900, color: '#F59E0B' },
-    { name: 'Prestador', value: 20500, color: '#8B5CF6' },
-];
-
-const recentUsers = [
-    { name: 'Ana Oliveira', type: 'morador' as ProfileType, tokens: 3420, active: true },
-    { name: 'José Santos', type: 'zelador' as ProfileType, tokens: 5180, active: true },
-    { name: 'Roberto Lima', type: 'prestador' as ProfileType, tokens: 2100, active: true },
-    { name: 'Mariana Costa', type: 'morador' as ProfileType, tokens: 1890, active: true },
-    { name: 'Pedro Almeida', type: 'morador' as ProfileType, tokens: 4200, active: false },
-    { name: 'Fernanda Silva', type: 'morador' as ProfileType, tokens: 890, active: true },
-];
+// Real-time data placeholders
+const tokenUsageData: any[] = [];
+const profileDistribution: any[] = [];
+const recentUsers: any[] = [];
 
 const profileVariant: Record<string, 'sindico' | 'morador' | 'zelador' | 'prestador'> = {
     admin: 'sindico',
@@ -80,8 +58,8 @@ export default function Dashboard({ onNavigateHome }: DashboardProps) {
     const { tenant, profile, signOut } = useAuth();
     const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'chat' | 'settings'>('overview');
 
-    const tokenBalance = tenant?.token_balance || 487_350;
-    const tokenTotal = tenant?.plan_tokens_total || 2_000_000;
+    const tokenBalance = tenant?.token_balance || 0;
+    const tokenTotal = tenant?.plan_tokens_total || 1_000_000;
     const tokenUsed = tokenTotal - tokenBalance;
     const tokenPercent = Math.min(Math.round((tokenBalance / tokenTotal) * 100), 100);
     const isLow = tokenPercent <= 20;
@@ -177,9 +155,9 @@ export default function Dashboard({ onNavigateHome }: DashboardProps) {
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                                 {[
                                     { label: 'Saldo de Tokens', value: formatTokenCount(tokenBalance).replace(' tokens', ''), sub: `${tokenPercent}% restante`, Icon: Zap },
-                                    { label: 'Consumo Semanal', value: formatTokenCount(tokenUsed).replace(' tokens', ''), sub: '+12.5% vs ontem', Icon: TrendingUp, trend: 'up' },
+                                    { label: 'Consumo Semanal', value: formatTokenCount(tokenUsed).replace(' tokens', ''), sub: 'Dados reais', Icon: TrendingUp, trend: 'up' },
                                     { label: 'Usuários Ativos', value: recentUsers.filter(u => u.active).length.toString(), sub: `de ${recentUsers.length} total`, Icon: Users },
-                                    { label: 'Interações Hoje', value: '23', sub: '+8 conversas', Icon: MessageSquare, trend: 'up' },
+                                    { label: 'Interações Hoje', value: '0', sub: 'Sem atividade', Icon: MessageSquare },
                                 ].map((stat) => (
                                     <Card key={stat.label} variant="default" className="flex flex-col gap-4">
                                         <div className="flex items-center justify-between">
@@ -255,7 +233,7 @@ export default function Dashboard({ onNavigateHome }: DashboardProps) {
                                                     <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }} />
                                                     <span className="text-[10px] uppercase font-bold text-text-tertiary font-display">{item.name}</span>
                                                 </div>
-                                                <span className="text-xs font-mono text-text-primary font-bold">{((item.value / 134200) * 100).toFixed(1)}%</span>
+                                                <span className="text-xs font-mono text-text-primary font-bold">0%</span>
                                             </div>
                                         ))}
                                     </div>

@@ -24,14 +24,6 @@ export async function streamChat(
     profile?: any,
     signal?: AbortSignal
 ): Promise<void> {
-    // Simulation is ONLY for explicit demo sessions
-    const isDemoProfile = Boolean(profile?.id?.includes('demo'));
-    const isExplicitSimulate = API_BASE_URL === 'simulate';
-    
-    if (isDemoProfile || isExplicitSimulate) {
-        console.warn('[Chat Service] Using simulated streaming:', { isDemoProfile, isExplicitSimulate });
-        return simulateStreaming(messages, agentType, callbacks, signal);
-    }
 
     // Build system prompt
     const dbConfig = await getAgentConfig(agentType);
@@ -150,26 +142,3 @@ ${tenant.tenant_context ? `Regras e Informações Específicas: ${tenant.tenant_
     }
 }
 
-async function simulateStreaming(
-    messages: ChatMessage[],
-    agentType: ProfileType,
-    callbacks: StreamCallbacks,
-    signal?: AbortSignal
-): Promise<void> {
-    const lastUserMessage = messages[messages.length - 1]?.content || '';
-    const agentName = AGENT_CONFIGS[agentType]?.name || 'XPERT';
-    const response = `Olá! Sou o **${agentName}**. No momento estou em modo demonstração. Recebi sua mensagem: "${lastUserMessage.slice(0, 30)}..."`;
-
-    let fullText = '';
-    const words = response.split(' ');
-
-    for (let i = 0; i < words.length; i++) {
-        if (signal?.aborted) return;
-        const word = (i > 0 ? ' ' : '') + words[i];
-        fullText += word;
-        callbacks.onToken(word);
-        await new Promise((resolve) => setTimeout(resolve, 30));
-    }
-
-    callbacks.onComplete(fullText, { prompt_tokens: 10, completion_tokens: 20 });
-}

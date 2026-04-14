@@ -42,9 +42,7 @@ interface PlatformStats {
 }
 
 interface PlanPrices {
-    starter: number;
-    pro: number;
-    enterprise: number;
+    premium: number;
 }
 
 interface SuperAdminDashboardProps {
@@ -92,7 +90,7 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
     const [isLoadingStats, setIsLoadingStats] = useState(true);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null);
-    const [planPrices, setPlanPrices] = useState<PlanPrices>({ starter: 199, pro: 499, enterprise: 1199 });
+    const [planPrices, setPlanPrices] = useState<PlanPrices>({ premium: 299 });
     const [isSavingPrices, setIsSavingPrices] = useState(false);
 
     // Knowledge Base integration settings removed (using agents' text-based KB now)
@@ -137,7 +135,11 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
             .single();
         
         if (settingsData?.value) {
-            setPlanPrices(settingsData.value);
+            // Ensure compatibility if it's still the old object
+            const val = settingsData.value;
+            setPlanPrices({
+                premium: val.premium || val.pro || 299
+            });
         }
         
         setIsLoadingStats(false);
@@ -192,8 +194,7 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
 
     const estimatedMRR = tenantsList.reduce((acc, t) => {
         if (t.status !== 'active') return acc;
-        const price = planPrices[t.plan as keyof PlanPrices] || 0;
-        return acc + price;
+        return acc + (planPrices.premium || 0);
     }, 0);
 
     const getStatusColor = (status: string) => {
@@ -487,8 +488,8 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
                                                             </div>
                                                         </td>
                                                         <td className="p-4">
-                                                            <Badge variant={tenant.plan === 'enterprise' ? 'prestador' : tenant.plan === 'pro' ? 'sindico' : 'morador'}>
-                                                                {(tenant.plan || 'starter').toUpperCase()}
+                                                            <Badge variant={tenant.plan === 'premium' ? 'prestador' : 'morador'}>
+                                                                {(tenant.plan || 'premium').toUpperCase()}
                                                             </Badge>
                                                         </td>
                                                         <td className="p-4">
@@ -620,22 +621,20 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
                                     </div>
 
                                     <div className="space-y-4">
-                                        {Object.keys(planPrices).map((plan) => (
-                                            <div key={plan} className="flex flex-col gap-1.5">
-                                                <label className="text-[10px] uppercase font-bold text-text-tertiary tracking-widest px-1">
-                                                    Plano {plan}
-                                                </label>
-                                                <div className="relative">
-                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary text-xs">R$</span>
-                                                    <input
-                                                        type="number"
-                                                        value={planPrices[plan as keyof PlanPrices]}
-                                                        onChange={(e) => setPlanPrices({ ...planPrices, [plan]: Number(e.target.value) })}
-                                                        className="w-full bg-bg-secondary border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/50 transition-colors"
-                                                    />
-                                                </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[10px] uppercase font-bold text-text-tertiary tracking-widest px-1">
+                                                Mensalidade (Acesso Premium)
+                                            </label>
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary text-xs">R$</span>
+                                                <input
+                                                    type="number"
+                                                    value={planPrices.premium}
+                                                    onChange={(e) => setPlanPrices({ premium: Number(e.target.value) })}
+                                                    className="w-full bg-bg-secondary border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/50 transition-colors"
+                                                />
                                             </div>
-                                        ))}
+                                        </div>
 
                                         <div className="pt-4 border-t border-border mt-6">
                                             <Button 

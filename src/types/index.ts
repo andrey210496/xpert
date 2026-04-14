@@ -6,7 +6,7 @@ export interface Tenant {
     slug: string;
     admin_user_id: string;
     token_balance: number;
-    plan: 'trial' | 'starter' | 'pro' | 'enterprise';
+    plan: 'trial' | 'premium';
     plan_tokens_total: number;
     settings: Record<string, unknown>;
     tenant_context?: string;

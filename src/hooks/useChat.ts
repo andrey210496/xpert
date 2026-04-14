@@ -12,8 +12,6 @@ const isUUID = (id: string) => {
     return regex.test(id);
 };
 
-// Storage keys
-const STORAGE_KEY_PREFIX = 'xpert_chat_';
 
 interface UseChatReturn {
     messages: Message[];
@@ -46,18 +44,6 @@ export function useChat(agentType: ProfileType): UseChatReturn {
 
     // --- Persistence Helpers ---
 
-    const getLocalHistory = useCallback(() => {
-        if (!profile?.id) return { conversations: [], messagesMap: {} };
-        const key = `${STORAGE_KEY_PREFIX}${profile.id}`;
-        const stored = localStorage.getItem(key);
-        return stored ? JSON.parse(stored) : { conversations: [], messagesMap: {} };
-    }, [profile]);
-
-    const saveLocalHistory = useCallback((convs: Conversation[], msgsMap: Record<string, Message[]>) => {
-        if (!profile?.id) return;
-        const key = `${STORAGE_KEY_PREFIX}${profile.id}`;
-        localStorage.setItem(key, JSON.stringify({ conversations: convs, messagesMap: msgsMap }));
-    }, [profile]);
 
     // Load conversations for the current agent type
     useEffect(() => {
@@ -65,14 +51,8 @@ export function useChat(agentType: ProfileType): UseChatReturn {
             if (!isAuthenticated || !profile) return;
             setIsLoadingHistory(true);
 
-            // CASE 1: Demo User (localStorage)
-            if (profile.id.includes('demo')) {
-                const local = getLocalHistory();
-                const filtered = local.conversations.filter((c: Conversation) => c.agent_type === agentType);
-                setConversations(filtered);
-            }
             // CASE 2: Real User (Supabase)
-            else if (isSupabaseConfigured() && isUUID(profile.id)) {
+            if (isSupabaseConfigured() && profile.id && isUUID(profile.id)) {
                 const { data, error } = await supabase
                     .from('conversations')
                     .select('*')
@@ -101,14 +81,8 @@ export function useChat(agentType: ProfileType): UseChatReturn {
             // Skip if already loaded in state (prevents race condition on new conversations)
             if (currentConversation.id === lastFetchedIdRef.current) return;
 
-            // CASE 1: Demo User (localStorage)
-            if (currentConversation.id.includes('demo') || profile.id.includes('demo')) {
-                const local = getLocalHistory();
-                setMessages(local.messagesMap[currentConversation.id] || []);
-                lastFetchedIdRef.current = currentConversation.id;
-            }
             // CASE 2: Real User (Supabase)
-            else if (isSupabaseConfigured() && isUUID(currentConversation.id)) {
+            if (isSupabaseConfigured() && currentConversation.id && isUUID(currentConversation.id)) {
                 const { data, error } = await supabase
                     .from('messages')
                     .select('*')
@@ -128,7 +102,7 @@ export function useChat(agentType: ProfileType): UseChatReturn {
             setMessages([]);
             lastFetchedIdRef.current = null;
         }
-    }, [currentConversation?.id, currentConversation, isAuthenticated, profile, getLocalHistory]);
+    }, [currentConversation?.id, currentConversation, isAuthenticated, profile]);
 
     const startNewConversation = useCallback(() => {
         setCurrentConversation(null);
@@ -151,28 +125,8 @@ export function useChat(agentType: ProfileType): UseChatReturn {
 
             // 1. Create or Identify conversation
             if (!activeConv && isAuthenticated && profile) {
-                // CASE 1: Demo User (Local Creation)
-                if (profile.id.includes('demo')) {
-                    activeConv = {
-                        id: `demo-conv-${generateId()}`,
-                        profile_id: profile.id,
-                        tenant_id: tenant?.id || 'demo-tenant',
-                        agent_type: agentType,
-                        title: content.slice(0, 50),
-                        tokens_used: 0,
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString(),
-                    };
-                    const local = getLocalHistory();
-                    local.conversations = [activeConv, ...local.conversations];
-                    local.messagesMap[activeConv.id] = [];
-                    saveLocalHistory(local.conversations, local.messagesMap);
-
-                    setConversations(prev => [activeConv!, ...prev]);
-                    setCurrentConversation(activeConv);
-                }
                 // CASE 2: Real User (Supabase Insertion)
-                else if (isSupabaseConfigured() && isUUID(profile.id)) {
+                if (isSupabaseConfigured() && profile.id && isUUID(profile.id)) {
                     const { data, error } = await supabase
                         .from('conversations')
                         .insert({
@@ -210,11 +164,7 @@ export function useChat(agentType: ProfileType): UseChatReturn {
 
             // 3. Persist user message
             if (isAuthenticated && activeConv && profile) {
-                if (activeConv.id.includes('demo')) {
-                    const local = getLocalHistory();
-                    local.messagesMap[activeConv.id] = [...(local.messagesMap[activeConv.id] || []), userMessage];
-                    saveLocalHistory(local.conversations, local.messagesMap);
-                } else if (isSupabaseConfigured() && isUUID(activeConv.id)) {
+                if (isSupabaseConfigured() && activeConv.id && isUUID(activeConv.id)) {
                     await supabase.from('messages').insert({
                         conversation_id: activeConv.id,
                         role: 'user',
@@ -271,13 +221,8 @@ export function useChat(agentType: ProfileType): UseChatReturn {
                         );
                         setIsStreaming(false);
 
-                        // 5. Persist assistant message
                         if (isAuthenticated && activeConv && profile) {
-                            if (activeConv.id.includes('demo')) {
-                                const local = getLocalHistory();
-                                local.messagesMap[activeConv.id] = [...(local.messagesMap[activeConv.id] || []), finalAssistantMsg];
-                                saveLocalHistory(local.conversations, local.messagesMap);
-                            } else if (isSupabaseConfigured() && isUUID(activeConv.id)) {
+                            if (isSupabaseConfigured() && activeConv.id && isUUID(activeConv.id)) {
                                 await supabase.from('messages').insert({
                                     conversation_id: activeConv.id,
                                     role: 'assistant',
@@ -310,21 +255,12 @@ export function useChat(agentType: ProfileType): UseChatReturn {
                 controller.signal
             );
         },
-        [messages, isStreaming, currentConversation, agentType, isAuthenticated, isGuestLimitReached, profile, tenant, getLocalHistory, saveLocalHistory]
+        [messages, isStreaming, currentConversation, agentType, isAuthenticated, isGuestLimitReached, profile, tenant]
     );
 
     const deleteConversation = useCallback(
         async (conversationId: string) => {
-            // CASE 1: Demo User (localStorage)
-            if (profile?.id.includes('demo') || conversationId.includes('demo')) {
-                const local = getLocalHistory();
-                local.conversations = local.conversations.filter((c: Conversation) => c.id !== conversationId);
-                delete local.messagesMap[conversationId];
-                saveLocalHistory(local.conversations, local.messagesMap);
-                setConversations(local.conversations.filter((c: Conversation) => c.agent_type === agentType));
-            }
-            // CASE 2: Real User (Supabase)
-            else if (isSupabaseConfigured() && isUUID(conversationId)) {
+            if (isSupabaseConfigured() && conversationId && isUUID(conversationId)) {
                 const { error } = await supabase
                     .from('conversations')
                     .delete()
@@ -343,7 +279,8 @@ export function useChat(agentType: ProfileType): UseChatReturn {
                 setMessages([]);
             }
         },
-        [profile, agentType, getLocalHistory, saveLocalHistory, currentConversation]
+        },
+        [profile, agentType, currentConversation]
     );
 
     return {

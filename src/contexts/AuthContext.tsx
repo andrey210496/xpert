@@ -13,7 +13,6 @@ interface AuthContextType {
     signUpFromLead: (data: LeadSignUpData) => Promise<{ error?: string, profile?: Profile }>;
     signOut: () => Promise<void>;
     refreshAuthData: () => Promise<void>;
-    setDemoProfile: (profileType: ProfileType) => void;
 }
 
 interface SignUpData {
@@ -35,33 +34,6 @@ export interface LeadSignUpData {
     phone: string;
     profileType: ProfileType;
 }
-
-// Demo data for when Supabase is not configured
-const DEMO_TENANT: Tenant = {
-    id: 'demo-tenant-001',
-    name: 'Condomínio Residencial Parque das Flores',
-    slug: 'parque-das-flores',
-    admin_user_id: 'demo-user-001',
-    token_balance: 487_350,
-    plan: 'pro',
-    plan_tokens_total: 2_000_000,
-    settings: {},
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-};
-
-const createDemoProfile = (type: ProfileType): Profile => ({
-    id: `demo-profile-${type}`,
-    user_id: `demo-user-${type}`,
-    tenant_id: DEMO_TENANT.id,
-    full_name: type === 'superadmin' ? 'Dono da Plataforma' : type === 'admin' ? 'Carlos Silva' : type === 'morador' ? 'Ana Oliveira' : type === 'zelador' ? 'José Santos' : 'Roberto Lima',
-    phone: '(11) 99999-9999',
-    profile_type: type,
-    is_active: true,
-    daily_token_usage: Math.floor(Math.random() * 5000),
-    last_usage_reset: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<AuthUser | null>(null);
@@ -104,7 +76,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         if (!isSupabaseConfigured()) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsLoading(false);
             return;
         }
@@ -136,14 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
     const signIn = useCallback(async (email: string, password: string) => {
-        if (!isSupabaseConfigured()) {
-            // Demo sign in
-            const demoProfile = createDemoProfile('admin');
-            setUser({ id: 'demo-user-admin', email });
-            setProfile(demoProfile);
-            setTenant(DEMO_TENANT);
-            return { profile: demoProfile };
-        }
+        if (!isSupabaseConfigured()) return { error: 'Sistema de autenticação não configurado.' };
 
         const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) return { error: error.message };
@@ -162,12 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const signUp = useCallback(async (data: SignUpData) => {
-        if (!isSupabaseConfigured()) {
-            setUser({ id: `demo-user-${data.profileType}`, email: data.email });
-            setProfile(createDemoProfile(data.profileType));
-            setTenant(DEMO_TENANT);
-            return {};
-        }
+        if (!isSupabaseConfigured()) return { error: 'Sistema de cadastro não configurado.' };
 
         const { data: authData, error } = await supabase.auth.signUp({
             email: data.email,
@@ -212,12 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, [user?.id, loadProfile]);
 
     const signUpFromLead = useCallback(async (data: LeadSignUpData) => {
-        if (!isSupabaseConfigured()) {
-            setUser({ id: `demo-user-${data.profileType}`, email: data.email });
-            setProfile(createDemoProfile(data.profileType));
-            setTenant(DEMO_TENANT);
-            return {};
-        }
+        if (!isSupabaseConfigured()) return { error: 'Sistema de cadastro não configurado.' };
 
         const { data: authData, error } = await supabase.auth.signUp({
             email: data.email,
@@ -244,12 +198,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { profile: profileData as Profile };
     }, []);
 
-    const setDemoProfile = useCallback((profileType: ProfileType) => {
-        const demoUser = { id: `demo-user-${profileType}`, email: 'demo@xpert.com' };
-        setUser(demoUser);
-        setProfile(createDemoProfile(profileType));
-        setTenant(DEMO_TENANT);
-    }, []);
 
     return (
         <AuthContext.Provider
@@ -264,7 +212,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 signUpFromLead,
                 signOut,
                 refreshAuthData,
-                setDemoProfile,
             }}
         >
             {children}

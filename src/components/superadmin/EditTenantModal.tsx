@@ -22,10 +22,7 @@ interface EditTenantModalProps {
 }
 
 const PLAN_OPTIONS = [
-    { value: 'trial',      label: 'Trial',      tokens: 50_000 },
-    { value: 'starter',    label: 'Starter',    tokens: 500_000 },
-    { value: 'pro',        label: 'Pro',        tokens: 2_000_000 },
-    { value: 'enterprise', label: 'Enterprise', tokens: 10_000_000 },
+    { value: 'premium', label: 'Premium', tokens: 1_000_000 },
 ];
 
 const TOKEN_TOP_UPS = [
@@ -48,7 +45,7 @@ export function EditTenantModal({ isOpen, onClose, tenant, onSuccess }: EditTena
 
     const [form, setForm] = useState({
         name: '',
-        plan: 'starter',
+        plan: 'premium',
         status: 'active',
         tenant_context: '',
     });
@@ -58,7 +55,7 @@ export function EditTenantModal({ isOpen, onClose, tenant, onSuccess }: EditTena
         if (tenant) {
             setForm({
                 name: tenant.name || '',
-                plan: tenant.plan || 'starter',
+                plan: tenant.plan || 'premium',
                 status: tenant.status || 'active',
                 tenant_context: tenant.tenant_context || '',
             });
@@ -301,26 +298,6 @@ export function EditTenantModal({ isOpen, onClose, tenant, onSuccess }: EditTena
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Plano */}
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] uppercase tracking-widest text-text-secondary font-bold">
-                            Plano
-                        </label>
-                        <div className="relative">
-                            <select
-                                value={form.plan}
-                                onChange={(e) => setForm({ ...form, plan: e.target.value })}
-                                className="w-full h-10 bg-bg-secondary border border-border rounded-md pl-3 pr-8 text-sm text-text-primary focus:outline-none focus:border-accent/50 appearance-none transition-all"
-                            >
-                                {PLAN_OPTIONS.map(p => (
-                                    <option key={p.value} value={p.value}>
-                                        {p.label} — {p.tokens.toLocaleString('pt-BR')} tokens
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" size={14} />
-                        </div>
-                    </div>
 
                     {/* Status */}
                     <div className="flex flex-col gap-1.5">

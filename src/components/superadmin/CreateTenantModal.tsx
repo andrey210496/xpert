@@ -14,7 +14,7 @@ export function CreateTenantModal({ isOpen, onClose, onSuccess }: CreateTenantMo
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({
         tenantName: '',
-        plan: 'starter',
+        plan: 'premium',
         adminName: '',
         adminEmail: '',
         adminPhone: '',
@@ -113,21 +113,6 @@ export function CreateTenantModal({ isOpen, onClose, onSuccess }: CreateTenantMo
                         autoFocus
                     />
 
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-text-secondary capitalize">Plano de Acesso</label>
-                        <div className="relative">
-                            <select
-                                value={formData.plan}
-                                onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
-                                className="w-full bg-bg-primary border border-border rounded-lg pl-4 pr-10 py-2.5 text-sm text-text-primary focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 appearance-none transition-all"
-                            >
-                                <option value="starter">Starter (500k Tokens)</option>
-                                <option value="pro">Pro (2M Tokens)</option>
-                                <option value="enterprise">Enterprise (10M Tokens)</option>
-                            </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" size={16} />
-                        </div>
-                    </div>
                 </div>
 
                 <div className="space-y-4 p-4 rounded-xl bg-bg-secondary border border-border">
