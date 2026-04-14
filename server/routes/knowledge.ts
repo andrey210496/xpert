@@ -60,21 +60,31 @@ function chunkText(text: string): string[] {
     return chunks.filter(c => c.trim().length > 80);
 }
 
-async function upsertToQdrant(points: any[]) {
+async function upsertToQdrant(points: any[], retries = 3) {
     if (!QDRANT_URL) throw new Error('QDRANT_URL not configured');
     
-    const res = await fetch(`${QDRANT_URL}/collections/${COLLECTION}/points?wait=true`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(QDRANT_API_KEY ? { 'api-key': QDRANT_API_KEY } : {}),
-        },
-        body: JSON.stringify({ points }),
-    });
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            const res = await fetch(`${QDRANT_URL}/collections/${COLLECTION}/points?wait=true`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(QDRANT_API_KEY ? { 'api-key': QDRANT_API_KEY } : {}),
+                },
+                body: JSON.stringify({ points }),
+            });
 
-    if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`Qdrant error: ${err}`);
+            if (!res.ok) {
+                const err = await res.text();
+                throw new Error(`Qdrant error: ${err}`);
+            }
+            return; // Success
+        } catch (error: any) {
+            console.warn(`[Knowledge] Qdrant upload attempt ${attempt} failed: ${error.message}`);
+            if (attempt === retries) throw error;
+            // Wait 1s, then 2s, before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
     }
 }
 
@@ -109,7 +119,7 @@ router.post('/ingest', (req: Request, res: Response, next: any) => {
         
         console.log(`[Knowledge] Split into ${chunks.length} chunks`);
 
-        const BATCH_SIZE = 10;
+        const BATCH_SIZE = 5;
         let totalProcessed = 0;
 
         for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
