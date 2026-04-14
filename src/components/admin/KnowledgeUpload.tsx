@@ -22,11 +22,16 @@ export function KnowledgeUpload({ tenantId }: Props) {
   }, [tenantId]);
 
   async function fetchFiles() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('knowledge_files')
       .select('*')
       .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('[KnowledgeUpload] Error fetching files:', error);
+    }
+    
     if (data) setFiles(data);
   }
 
@@ -87,11 +92,16 @@ export function KnowledgeUpload({ tenantId }: Props) {
       });
       
       // Registrar no Supabase
-      await supabase.from('knowledge_files').insert({
+      const { error: insertError } = await supabase.from('knowledge_files').insert({
         tenant_id: tenantId,
         filename: file.name,
         chunks_count: data.chunks
       });
+      
+      if (insertError) {
+        console.error('[KnowledgeUpload] Supabase insert error:', insertError);
+        throw new Error('Processado pela IA, mas erro ao salvar no banco local: ' + insertError.message);
+      }
       
       await fetchFiles();
 

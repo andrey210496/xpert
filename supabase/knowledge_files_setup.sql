@@ -12,22 +12,19 @@ CREATE TABLE IF NOT EXISTS knowledge_files (
 -- Habilitar segurança a nível de linha (RLS)
 ALTER TABLE knowledge_files ENABLE ROW LEVEL SECURITY;
 
--- Política: Todos do Tenant Podem Ler
+-- Política: Todos do Tenant Podem Ler + SuperAdmins
 CREATE POLICY "tenant_read_knowledge_files" ON knowledge_files
   FOR SELECT
   USING (
     tenant_id = (SELECT tenant_id FROM profiles WHERE user_id = auth.uid() LIMIT 1)
+    OR (SELECT profile_type FROM profiles WHERE user_id = auth.uid() LIMIT 1) = 'superadmin'
   );
 
 -- Política: SuperAdmins e Admins do Tenant Podem Inserir/Deletar
 CREATE POLICY "admin_manage_knowledge_files" ON knowledge_files
   FOR ALL
   USING (
-    tenant_id = (SELECT tenant_id FROM profiles WHERE user_id = auth.uid() LIMIT 1)
-    AND (
-       SELECT EXISTS (
-          SELECT 1 FROM profiles 
-          WHERE user_id = auth.uid() AND profile_type IN ('admin', 'superadmin')
-       )
-    )
+    (tenant_id = (SELECT tenant_id FROM profiles WHERE user_id = auth.uid() LIMIT 1)
+     AND (SELECT profile_type FROM profiles WHERE user_id = auth.uid() LIMIT 1) = 'admin')
+    OR (SELECT profile_type FROM profiles WHERE user_id = auth.uid() LIMIT 1) = 'superadmin'
   );

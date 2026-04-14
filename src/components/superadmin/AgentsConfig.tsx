@@ -27,6 +27,7 @@ export function AgentsConfig() {
     const [configs, setConfigs] = useState<AgentDbConfig[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
+    const [activeSubTab, setActiveSubTab] = useState<'behavior' | 'knowledge'>('behavior');
     const [editState, setEditState] = useState<Record<string, AgentCardState>>({});
 
     useEffect(() => {
@@ -209,78 +210,108 @@ export function AgentsConfig() {
 
                             {/* Expanded Content */}
                             {isExpanded && (
-                                <div className="border-t border-border p-5 flex flex-col gap-5">
-                                    {/* Active Toggle */}
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-xs font-bold uppercase tracking-widest text-text-tertiary">
-                                            Status do Agente
-                                        </label>
+                                <div className="border-t border-border flex flex-col bg-bg-secondary">
+                                    {/* Sub-Tabs Navigation */}
+                                    <div className="flex border-b border-border bg-bg-tertiary/30 px-5 pt-4 gap-6">
                                         <button
-                                            onClick={() => updateField(config.agent_type, 'is_active', !state.is_active)}
-                                            className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer ${state.is_active ? 'bg-success' : 'bg-bg-tertiary'
-                                                }`}
+                                            onClick={() => setActiveSubTab('behavior')}
+                                            className={`pb-3 text-xs font-bold uppercase tracking-widest transition-all relative ${
+                                                activeSubTab === 'behavior' ? 'text-accent' : 'text-text-tertiary hover:text-text-secondary'
+                                            }`}
                                         >
-                                            <span
-                                                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${state.is_active ? 'translate-x-5' : 'translate-x-0'
-                                                    }`}
-                                            />
+                                            🧠 Personalidade
+                                            {activeSubTab === 'behavior' && (
+                                                <motion.div layoutId="activeSubTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveSubTab('knowledge')}
+                                            className={`pb-3 text-xs font-bold uppercase tracking-widest transition-all relative ${
+                                                activeSubTab === 'knowledge' ? 'text-accent' : 'text-text-tertiary hover:text-text-secondary'
+                                            }`}
+                                        >
+                                            📚 Conhecimento
+                                            {activeSubTab === 'knowledge' && (
+                                                <motion.div layoutId="activeSubTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />
+                                            )}
                                         </button>
                                     </div>
 
-                                    {/* System Prompt */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-xs font-bold uppercase tracking-widest text-text-tertiary">
-                                                System Prompt
-                                            </label>
-                                            <span className="text-[10px] text-text-tertiary font-mono">
-                                                {state.system_prompt.length.toLocaleString()} chars
-                                            </span>
-                                        </div>
-                                        <textarea
-                                            value={state.system_prompt}
-                                            onChange={(e) => updateField(config.agent_type, 'system_prompt', e.target.value)}
-                                            rows={8}
-                                            className="w-full bg-bg-primary border border-border rounded-lg px-4 py-3 text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 resize-y font-mono leading-relaxed transition-all"
-                                            placeholder="Defina o comportamento do agente..."
-                                        />
-                                    </div>
+                                    <div className="p-5 space-y-5">
+                                        {activeSubTab === 'behavior' ? (
+                                            <>
+                                                {/* Active Toggle */}
+                                                <div className="flex items-center justify-between p-3 rounded-xl bg-bg-tertiary/20 border border-border/50">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-bold text-text-primary uppercase tracking-tight">Status do Agente</span>
+                                                        <span className="text-[10px] text-text-tertiary">Ativa ou desativa este papel no sistema</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => updateField(config.agent_type, 'is_active', !state.is_active)}
+                                                        className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer ${state.is_active ? 'bg-success' : 'bg-bg-tertiary'
+                                                            }`}
+                                                    >
+                                                        <span
+                                                            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${state.is_active ? 'translate-x-5' : 'translate-x-0'
+                                                                }`}
+                                                        />
+                                                    </button>
+                                                </div>
 
-                                    {/* Knowledge Base (PDF - Per Agent Role) */}
-                                    <div className="p-4 rounded-xl border border-border bg-bg-tertiary/20 space-y-4">
-                                        <div className="flex items-center gap-2">
-                                            <Book size={16} className="text-accent" />
-                                            <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider font-display">
-                                                Conhecimento em PDF (RAG — {config.display_name})
-                                            </h3>
-                                        </div>
-                                        <p className="text-[10px] text-text-tertiary">
-                                            Suba manuais e documentos específicos para este papel. Eles ficarão disponíveis para <strong>todos</strong> os {config.display_name}s da plataforma.
-                                        </p>
-                                        <KnowledgeUpload tenantId={`agent:${config.agent_type}`} />
-                                    </div>
+                                                {/* System Prompt */}
+                                                <div className="flex flex-col gap-1.5">
+                                                    <div className="flex items-center justify-between">
+                                                        <label className="text-xs font-bold uppercase tracking-widest text-text-tertiary">
+                                                            System Prompt (Instruções Principais)
+                                                        </label>
+                                                        <span className="text-[10px] text-text-tertiary font-mono">
+                                                            {state.system_prompt.length.toLocaleString()} chars
+                                                        </span>
+                                                    </div>
+                                                    <textarea
+                                                        value={state.system_prompt}
+                                                        onChange={(e) => updateField(config.agent_type, 'system_prompt', e.target.value)}
+                                                        rows={10}
+                                                        className="w-full bg-bg-primary border border-border rounded-lg px-4 py-3 text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 resize-y font-mono leading-relaxed transition-all"
+                                                        placeholder="Defina as instruções de personalidade do agente..."
+                                                    />
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                {/* Knowledge Base (PDF) */}
+                                                <div className="space-y-4">
+                                                    <div className="bg-bg-tertiary/20 rounded-xl border border-border p-1">
+                                                        <KnowledgeUpload tenantId={`agent:${config.agent_type}`} />
+                                                    </div>
+                                                </div>
 
-                                    {/* Knowledge Base (Texto) */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-xs font-bold uppercase tracking-widest text-text-tertiary">
-                                                Base de Conhecimento (Texto)
-                                            </label>
-                                            <span className="text-[10px] text-text-tertiary font-mono">
-                                                {state.knowledge_base.length.toLocaleString()} chars
-                                            </span>
-                                        </div>
-                                        <textarea
-                                            value={state.knowledge_base}
-                                            onChange={(e) => updateField(config.agent_type, 'knowledge_base', e.target.value)}
-                                            rows={6}
-                                            className="w-full bg-bg-primary border border-border rounded-lg px-4 py-3 text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 resize-y font-mono leading-relaxed transition-all"
-                                            placeholder="Cole aqui regras gerais que o agente deve sempre saber..."
-                                        />
-                                        <p className="text-[10px] text-text-tertiary">
-                                            💡 Esse conteúdo será injetado junto ao prompt do agente. Use para regras rápidas ou FAQs globais.
-                                        </p>
-                                    </div>
+                                                {/* Knowledge Base (Texto) */}
+                                                <div className="flex flex-col gap-1.5">
+                                                    <div className="flex items-center justify-between">
+                                                        <label className="text-xs font-bold uppercase tracking-widest text-text-tertiary">
+                                                            Documentos de Texto (REGRAS RÁPIDAS)
+                                                        </label>
+                                                        <span className="text-[10px] text-text-tertiary font-mono">
+                                                            {state.knowledge_base.length.toLocaleString()} chars
+                                                        </span>
+                                                    </div>
+                                                    <textarea
+                                                        value={state.knowledge_base}
+                                                        onChange={(e) => updateField(config.agent_type, 'knowledge_base', e.target.value)}
+                                                        rows={8}
+                                                        className="w-full bg-bg-primary border border-border rounded-lg px-4 py-3 text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 resize-y font-mono leading-relaxed transition-all"
+                                                        placeholder="Cole aqui regras gerais, SLAs ou FAQs que o agente deve sempre consultar..."
+                                                    />
+                                                    <div className="flex items-start gap-2 p-2 bg-accent/5 rounded-md border border-accent/10">
+                                                        <Info size={12} className="text-accent mt-0.5" />
+                                                        <p className="text-[10px] text-text-secondary leading-relaxed font-sans">
+                                                            💡 Esse conteúdo servirá como backup se a IA não encontrar informações nos arquivos PDF.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
 
                                     {/* Error */}
                                     {state.error && (
