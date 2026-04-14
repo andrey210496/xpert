@@ -207,8 +207,7 @@ export function AgentsConfig() {
                                             Papel sistêmico atualizado
                                         </span>
                                     </div>
-                                </div>
-                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2">
                                     {hasChanges(config.agent_type) && (
                                         <span className="w-2 h-2 rounded-full bg-warning" />
                                     )}
