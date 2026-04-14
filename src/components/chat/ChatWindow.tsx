@@ -402,28 +402,74 @@ function ChatSidebar({
         }
     };
 
-    const handleExport = (conv: Conversation) => {
-        // Simple export - actual messages would need to be fetched if not current
-        const content = `Histórico de Conversa - ${conv.title || 'Início'}\nData: ${new Date(conv.created_at).toLocaleString()}\n\n[Mensagens não carregadas nesta prévia do dashboard]`;
-        const blob = new Blob([content], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `conversa-${conv.id.slice(0, 8)}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+    const handleExport = async (conv: Conversation) => {
         setMenuOpenId(null);
         setMenuPosition(null);
+
+        try {
+            // Fetch messages from Supabase
+            const { supabase } = await import('../../services/supabase');
+            const { data: msgs, error } = await supabase
+                .from('messages')
+                .select('role, content, created_at')
+                .eq('conversation_id', conv.id)
+                .order('created_at', { ascending: true });
+
+            if (error || !msgs || msgs.length === 0) {
+                alert('Não foi possível exportar: conversa sem mensagens.');
+                return;
+            }
+
+            const header = `═══════════════════════════════════════\n  XPERT — Histórico de Conversa\n  ${conv.title || 'Conversa'}\n  Data: ${new Date(conv.created_at).toLocaleDateString('pt-BR')}\n═══════════════════════════════════════\n\n`;
+
+            const body = msgs.map((m: any) => {
+                const role = m.role === 'user' ? '👤 Você' : '🤖 Assistente';
+                const time = new Date(m.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                return `[${time}] ${role}:\n${m.content}\n`;
+            }).join('\n---\n\n');
+
+            const blob = new Blob([header + body], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `conversa-${conv.id.slice(0, 8)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch {
+            alert('Erro ao exportar conversa.');
+        }
     };
 
-    const handleShare = (conv: Conversation) => {
-        const shareUrl = `${window.location.origin}/chat/share/${conv.id}`;
-        navigator.clipboard.writeText(shareUrl);
-        alert('Link de compartilhamento copiado!');
+    const handleShare = async (conv: Conversation) => {
         setMenuOpenId(null);
         setMenuPosition(null);
+
+        try {
+            const { supabase } = await import('../../services/supabase');
+            const { data: msgs, error } = await supabase
+                .from('messages')
+                .select('role, content, created_at')
+                .eq('conversation_id', conv.id)
+                .order('created_at', { ascending: true });
+
+            if (error || !msgs || msgs.length === 0) {
+                alert('Conversa sem mensagens para compartilhar.');
+                return;
+            }
+
+            const text = `📋 *${conv.title || 'Conversa XPERT'}*\n\n` +
+                msgs.map((m: any) => {
+                    const role = m.role === 'user' ? '👤' : '🤖';
+                    return `${role} ${m.content}`;
+                }).join('\n\n');
+
+            await navigator.clipboard.writeText(text);
+            alert('✅ Conversa copiada! Cole onde quiser (WhatsApp, e-mail, etc.).');
+        } catch {
+            alert('Erro ao copiar conversa.');
+        }
     };
 
     return (
