@@ -423,7 +423,7 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
                                             <Tooltip
                                                 contentStyle={{ backgroundColor: '#1C1C24', border: '1px solid #2C2C34', borderRadius: '12px' }}
                                                 itemStyle={{ color: '#1A88C9' }}
-                                                formatter={(value: number | string | undefined) => [`${formatTokenCount(Number(value || 0))} tokens`, 'Consumo']}
+                                                formatter={(value: any) => [`${formatTokenCount(Number(value || 0))} tokens`, 'Consumo']}
                                             />
                                             <Area type="monotone" dataKey="tokens" stroke="#1A88C9" strokeWidth={3} fillOpacity={1} fill="url(#colorTokens)" />
                                         </AreaChart>
