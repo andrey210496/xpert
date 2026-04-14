@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Button, Badge } from '../ui';
-import { Bot, Save, Check, AlertCircle, ChevronDown, ChevronUp, Book } from 'lucide-react';
+import { Bot, Save, Check, AlertCircle, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { KnowledgeUpload } from '../admin/KnowledgeUpload';
+
 import { fetchAgentConfigs, updateAgentConfig } from '../../services/agentConfigService';
 import type { AgentDbConfig } from '../../types';
 
