@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LeadGate, getStoredLead } from './LeadGate';
 import { FinishSignupModal } from './FinishSignupModal';
 import type { LeadInfo } from './LeadGate';
@@ -18,7 +19,8 @@ import {
     Bot,
     User,
     Download,
-    LogOut
+    LogOut,
+    LayoutDashboard
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useChat } from '../../hooks/useChat';
@@ -595,6 +597,7 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
     const safeAgentType = activeAgentType || 'admin';
 
     const { isAuthenticated, profile, signOut } = useAuth();
+    const navigate = useNavigate();
     const {
         messages, conversations, currentConversation, isStreaming,
         sendMessage, deleteConversation,
@@ -774,12 +777,23 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
                                                         <p className="text-xs font-bold text-text-primary truncate">{profile.full_name}</p>
                                                     </div>
 
-                                                    <button className="w-full text-left px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover flex items-center gap-2 transition-colors">
-                                                        <User size={14} /> Meu Perfil
-                                                    </button>
-                                                    <button className="w-full text-left px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover flex items-center gap-2 transition-colors">
-                                                        <Building2 size={14} /> Meu Condomínio
-                                                    </button>
+                                                    {profile.profile_type === 'superadmin' ? (
+                                                        <button
+                                                            onClick={() => navigate('/superadmin')}
+                                                            className="w-full text-left px-4 py-2 text-xs font-medium text-accent hover:bg-accent/10 flex items-center gap-2 transition-colors"
+                                                        >
+                                                            <LayoutDashboard size={14} /> PAINEL DE CONTROLE
+                                                        </button>
+                                                    ) : (
+                                                        <>
+                                                            <button className="w-full text-left px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover flex items-center gap-2 transition-colors">
+                                                                <User size={14} /> Meu Perfil
+                                                            </button>
+                                                            <button className="w-full text-left px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover flex items-center gap-2 transition-colors">
+                                                                <Building2 size={14} /> Meu Condomínio
+                                                            </button>
+                                                        </>
+                                                    )}
 
                                                     <div className="h-px bg-border/50 my-1" />
 
