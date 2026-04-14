@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { chatRouter } from './routes/chat.js';
+import { knowledgeRouter } from './routes/knowledge.js';
 
 dotenv.config();
 
@@ -20,8 +21,9 @@ app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Chat proxy
+// Routes
 app.use('/api', chatRouter);
+app.use('/api/knowledge', knowledgeRouter);
 
 app.listen(PORT, () => {
     console.log(`[XPERT API] Server running on http://localhost:${PORT}`);

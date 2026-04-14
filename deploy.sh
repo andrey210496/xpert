@@ -42,12 +42,7 @@ echo "✅ .env encontrado"
 echo "📦 Instalando dependências..."
 npm install
 
-# --- 3. Deploy Supabase Edge Functions ---
-echo "☁️ Fazendo deploy das Edge Functions (Supabase)..."
-npx supabase functions deploy ingest-knowledge
-npx supabase functions deploy query-knowledge
-
-# --- 4. Build do Frontend (Vite) ---
+# --- 3. Build do Frontend (Vite) ---
 echo "🏗️ Build do frontend..."
 npm run build
 

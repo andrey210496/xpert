@@ -3,8 +3,7 @@ import { UploadCloud, FileCheck, AlertCircle, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ProgressBar, Card } from '../ui';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 interface Props {
   tenantId: string;
@@ -31,11 +30,8 @@ export function KnowledgeUpload({ tenantId }: Props) {
     formData.append('tenant_id', tenantId);
 
     try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/ingest-knowledge`, {
+      const res = await fetch(`${API_BASE_URL}/api/knowledge/ingest`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        },
         body: formData,
       });
 

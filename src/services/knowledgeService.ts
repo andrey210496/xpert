@@ -1,5 +1,4 @@
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 interface KnowledgeResult {
   context: string | null;
@@ -11,11 +10,10 @@ export async function fetchRelevantContext(
   tenantId: string
 ): Promise<KnowledgeResult> {
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/query-knowledge`, {
+    const res = await fetch(`${API_BASE_URL}/api/knowledge/query`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       },
       body: JSON.stringify({ question, tenant_id: tenantId }),
     });
