@@ -17,7 +17,6 @@ import {
     Hammer,
     Bot,
     User,
-    Share2,
     Download,
     LogOut
 } from 'lucide-react';
