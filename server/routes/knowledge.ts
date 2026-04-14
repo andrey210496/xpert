@@ -7,7 +7,7 @@ import { v5 as uuidv5 } from 'uuid';
 const router = Router();
 const upload = multer({ 
     storage: multer.memoryStorage(),
-    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+    limits: { fileSize: 200 * 1024 * 1024 } // 200MB limit
 });
 
 const QDRANT_URL = process.env.QDRANT_URL;
@@ -208,6 +208,48 @@ router.post('/query', async (req: Request, res: Response): Promise<void> => {
 
     } catch (error) {
         console.error('[Knowledge Query Error]:', error);
+        res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+});
+
+// ROUTE: Delete Knowledge File
+router.delete('/delete', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { tenant_id, filename } = req.body;
+
+        if (!tenant_id || !filename) {
+            res.status(400).json({ error: 'tenant_id e filename são obrigatórios' });
+            return;
+        }
+
+        if (!QDRANT_URL) throw new Error('QDRANT_URL not configured');
+
+        const response = await fetch(`${QDRANT_URL}/collections/${COLLECTION}/points/delete?wait=true`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(QDRANT_API_KEY ? { 'api-key': QDRANT_API_KEY } : {}),
+            },
+            body: JSON.stringify({
+                filter: {
+                    must: [
+                        { key: "tenant_id", match: { value: tenant_id } },
+                        { key: "source", match: { value: filename } }
+                    ]
+                }
+            })
+        });
+
+        if (!response.ok) {
+            const err = await response.text();
+            throw new Error(`Qdrant delete error: ${err}`);
+        }
+
+        console.log(`[Knowledge] Deleted file vectors: ${filename} for ${tenant_id}`);
+        res.json({ success: true });
+
+    } catch (error) {
+        console.error('[Knowledge Delete Error]:', error);
         res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
 });
