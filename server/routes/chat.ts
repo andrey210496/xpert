@@ -23,8 +23,8 @@ function buildOpenRouterPayload(messages: ChatMessage[], systemPrompt: string) {
             ...messages
         ],
         stream: true,
-        temperature: 0.7,
-        max_tokens: 4096,
+        temperature: 0.5,
+        max_tokens: 1500,
     };
 }
 

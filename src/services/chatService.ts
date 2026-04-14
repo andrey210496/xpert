@@ -27,7 +27,7 @@ export async function streamChat(
 
     // Build system prompt
     const dbConfig = await getAgentConfig(agentType);
-    let systemPrompt = dbConfig?.system_prompt || AGENT_CONFIGS[agentType]?.systemPrompt || '';
+    const basePrompt = dbConfig?.system_prompt || AGENT_CONFIGS[agentType]?.systemPrompt || '';
 
     // Fetch RAG context if tenant exists
     let ragContext = '';
@@ -41,28 +41,28 @@ export async function streamChat(
         }
     }
 
+    // Build knowledge section (optional)
+    let knowledgeSection = '';
     if (dbConfig?.knowledge_base || ragContext) {
         const combinedKnowledge = [
             dbConfig?.knowledge_base ? `REGRAS FIXAS DO AGENTE:\n${dbConfig.knowledge_base}` : '',
-            ragContext ? `BASE DE CONHECIMENTO DO CONDOMÍNIO (RAG):\n${ragContext}` : ''
+            ragContext ? `DOCUMENTOS RELEVANTES (RAG):\n${ragContext}` : ''
         ].filter(Boolean).join('\n\n---\n\n');
 
-        systemPrompt = `REGRAS OBRIGATÓRIAS DE RESPOSTA (PRIORIDADE MÁXIMA):
-1. RESPOSTA DIRETA E MINIMALISTA: Comece a resposta IMEDIATAMENTE.
-2. É PROIBIDO: Nunca use seções de "Entendimento", "Confirmação", "Resumo" ou repita o que o usuário disse.
-3. SAUDAÇÕES: Para "olá", "bom dia" ou saudações simples, responda APENAS com uma saudação curta de uma linha (ex: "Olá! Como posso ajudar você hoje?"). NÃO faça listas de perguntas.
-4. CONCISÃO EXTREMA: Use o mínimo de palavras possível. Vá direto ao ponto técnico ou informativo.
-5. EXCLUSIVIDADE: Use APENAS a "BASE DE CONHECIMENTO". Se não souber, diga: "Não tenho essa informação."
-6. ESTRUTURA: Use bullet points (listas) em vez de tabelas sempre que possível para facilitar a leitura. Use negrito apenas para termos essenciais.
-
-PERSONALIDADE:
-${systemPrompt}
-
-BASE DE CONHECIMENTO:
----
-${combinedKnowledge}
----`;
+        knowledgeSection = `\n\nBASE DE CONHECIMENTO (use APENAS este conteúdo para responder):\n---\n${combinedKnowledge}\n---`;
     }
+
+    // ALWAYS apply formatting rules — this wraps everything
+    let systemPrompt = `REGRAS DE COMPORTAMENTO (PRIORIDADE MÁXIMA — NUNCA DESOBEDEÇA):
+1. RESPOSTA DIRETA: Comece IMEDIATAMENTE com a informação. Sem introduções.
+2. PROIBIDO: Nunca escreva "Entendimento preliminar", "Confirmação", "Resumo", "Alinhamento" ou repita o que o usuário disse. Se fizer isso, você FALHOU.
+3. SAUDAÇÕES CURTAS: Se o usuário disser apenas "olá"/"oi"/"bom dia", responda com UMA FRASE CURTA (ex: "Olá! Como posso ajudar?"). Nada mais.
+4. CONCISÃO: Respostas curtas e objetivas. Máximo 3-4 parágrafos para temas simples. Elimine toda frase desnecessária.
+5. FORMATAÇÃO: Use bullet points (•) em vez de tabelas. Tabelas APENAS para comparativos numéricos. Use **negrito** só em termos-chave.
+6. SEM QUESTIONÁRIOS: Não faça listas de perguntas ao usuário. Se precisar de mais contexto, faça UMA pergunta específica no final.
+7. ESCOPO: Responda APENAS sobre assuntos de condomínio.${knowledgeSection ? ' Se tiver base de conhecimento, use EXCLUSIVAMENTE ela.' : ''}
+
+PERSONALIDADE: ${basePrompt}${knowledgeSection}`;
 
     if (tenant) {
         const tenantInfo = `\n\nCONTEXTO DO CONDOMÍNIO ATUAL:
