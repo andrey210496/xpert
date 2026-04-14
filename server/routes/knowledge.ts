@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import multer from 'multer';
 import pdfParse from 'pdf-parse';
-import { pipeline } from '@xenova/transformers';
+import { pipeline, env } from '@xenova/transformers';
 import { v5 as uuidv5 } from 'uuid';
 
 const router = Router();
@@ -17,14 +17,18 @@ const COLLECTION = "xpert_knowledge";
 // UUID Namespace for deterministic IDs
 const NAMESPACE = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
 
+// Configure Transformers.js to use local models only
+env.localModelPath = '/var/www/xpert/models';
+env.allowRemoteModels = false;
+
 // Singleton for the embedder to avoid reloading model
 let embedder: any = null;
 
 async function getEmbedder() {
     if (!embedder) {
-        console.log('[Knowledge] Loading gte-small model...');
+        console.log('[Knowledge] Loading local gte-small model...');
         embedder = await pipeline('feature-extraction', 'Xenova/gte-small', {
-            quantized: true
+            quantized: true,
         });
         console.log('[Knowledge] Model loaded successfully.');
     }
