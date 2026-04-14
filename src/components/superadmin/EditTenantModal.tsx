@@ -320,61 +320,53 @@ export function EditTenantModal({ isOpen, onClose, tenant, onSuccess }: EditTena
                 </div>
 
 
-                <div className="flex gap-3 justify-end pt-2">
-                    <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
-                        Cancelar
-                    </Button>
-                    <Button type="submit" isLoading={isLoading}>
-                        Salvar Alterações
-                    </Button>
-                </div>
-            </form>
-
-            {/* Delete section */}
-            <div className="mt-6 pt-5 border-t border-border-subtle">
-                {!showDeleteConfirm ? (
-                    <button
-                        type="button"
-                        onClick={() => setShowDeleteConfirm(true)}
-                        disabled={isLoading}
-                        className="flex items-center gap-2 text-xs text-error/70 hover:text-error transition-colors cursor-pointer disabled:opacity-50"
-                    >
-                        <Trash2 size={13} />
-                        Excluir este condomínio
-                    </button>
-                ) : (
-                    <div className="rounded-xl border border-error/30 bg-error/5 p-4 space-y-3">
-                        <div className="flex items-start gap-2.5">
-                            <AlertTriangle size={16} className="text-error shrink-0 mt-0.5" />
-                            <div>
-                                <p className="text-sm font-bold text-error">Excluir condomínio permanentemente?</p>
-                                <p className="text-xs text-text-secondary mt-0.5">
-                                    Todos os usuários, conversas e dados de <span className="font-bold text-text-primary">{tenant.name}</span> serão deletados. Esta ação não pode ser desfeita.
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex gap-2 justify-end">
+                <div className="flex flex-wrap gap-4 items-center justify-between pt-6 mt-4 border-t border-border/50">
+                    <div className="flex-1 min-w-[200px]">
+                        {!showDeleteConfirm ? (
                             <button
                                 type="button"
-                                onClick={() => setShowDeleteConfirm(false)}
+                                onClick={() => setShowDeleteConfirm(true)}
                                 disabled={isLoading}
-                                className="px-3 py-1.5 rounded-lg text-xs font-medium text-text-secondary hover:bg-bg-tertiary transition-colors cursor-pointer disabled:opacity-50"
-                            >
-                                Cancelar
-                            </button>
-                            <Button
-                                type="button"
-                                isLoading={isLoading}
-                                onClick={handleDelete}
-                                className="!bg-error hover:!bg-error/90 text-white text-xs px-4 py-1.5 gap-1.5"
+                                className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-error/60 hover:text-error transition-colors cursor-pointer disabled:opacity-50"
                             >
                                 <Trash2 size={13} />
-                                Confirmar Exclusão
-                            </Button>
-                        </div>
+                                Excluir condomínio
+                            </button>
+                        ) : (
+                            <div className="flex items-center gap-3">
+                                <span className="text-[10px] font-bold text-error uppercase tracking-widest">Confirmar?</span>
+                                <div className="flex gap-1.5">
+                                    <button
+                                        type="button"
+                                        onClick={handleDelete}
+                                        disabled={isLoading}
+                                        className="h-7 px-3 bg-error text-white text-[10px] font-bold rounded-md hover:bg-error-strong transition-colors"
+                                    >
+                                        SIM, EXCLUIR
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowDeleteConfirm(false)}
+                                        disabled={isLoading}
+                                        className="h-7 px-3 bg-bg-hover text-text-secondary text-[10px] font-bold rounded-md transition-colors"
+                                    >
+                                        NÃO
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+
+                    <div className="flex gap-3 justify-end flex-shrink-0">
+                        <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
+                            Cancelar
+                        </Button>
+                        <Button type="submit" isLoading={isLoading}>
+                            Salvar Alterações
+                        </Button>
+                    </div>
+                </div>
+            </form>
         </Modal>
     );
 }
