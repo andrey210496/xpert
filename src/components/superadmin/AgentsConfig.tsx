@@ -313,34 +313,36 @@ export function AgentsConfig() {
                                             </>
                                         )}
 
-                                    {/* Error */}
-                                    {state.error && (
-                                        <div className="text-[10px] uppercase tracking-wider font-bold text-error bg-error/5 border border-error/20 rounded-md px-3 py-2">
-                                            {state.error}
-                                        </div>
-                                    )}
+                                        {/* Error */}
+                                        {state.error && (
+                                            <div className="text-[10px] uppercase tracking-wider font-bold text-error bg-error/5 border border-error/20 rounded-md px-3 py-2">
+                                                {state.error}
+                                            </div>
+                                        )}
 
-                                    {/* Save Button */}
-                                    <div className="flex justify-end">
-                                        <Button
-                                            onClick={() => handleSave(config.agent_type)}
-                                            isLoading={state.isSaving}
-                                            disabled={!hasChanges(config.agent_type) && !state.isSaving}
-                                            className="font-bold tracking-tight"
-                                        >
-                                            {state.isSaved ? (
-                                                <>
-                                                    <Check size={16} /> Salvo!
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Save size={16} /> Salvar Configuração
-                                                </>
-                                            )}
-                                        </Button>
+                                        {/* Save Button */}
+                                        <div className="flex justify-end pt-2">
+                                            <Button
+                                                onClick={() => handleSave(config.agent_type)}
+                                                isLoading={state.isSaving}
+                                                disabled={!hasChanges(config.agent_type) && !state.isSaving}
+                                                className="font-bold tracking-tight"
+                                            >
+                                                {state.isSaved ? (
+                                                    <>
+                                                        <Check size={16} /> Salvo!
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Save size={16} /> Salvar Configuração
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             )}
+
                         </div>
                     );
                 })}
