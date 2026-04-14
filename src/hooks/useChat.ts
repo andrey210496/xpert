@@ -279,7 +279,6 @@ export function useChat(agentType: ProfileType): UseChatReturn {
                 setMessages([]);
             }
         },
-        },
         [profile, agentType, currentConversation]
     );
 
