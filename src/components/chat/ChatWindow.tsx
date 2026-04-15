@@ -627,9 +627,9 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, showLeadGate]);
 
-    // Auto-trigger FinishSignupModal after 5th message is completed (3 free + 2 after lead)
+    // Auto-trigger FinishSignupModal after 3rd message is completed (2 free + 1 after lead)
     useEffect(() => {
-        const FINAL_GUEST_LIMIT = GUEST_MESSAGE_LIMIT + 2; // 5
+        const FINAL_GUEST_LIMIT = GUEST_MESSAGE_LIMIT + 1; // 2 + 1 = 3
         if (
             !isAuthenticated && 
             leadCaptured && 
@@ -650,8 +650,8 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
             sendMessage(content);
             return;
         }
-        // If lead captured but not signed up, check final message limit (5 messages total)
-        const FINAL_GUEST_LIMIT = GUEST_MESSAGE_LIMIT + 2; // 3 + 2
+        // If lead captured but not signed up, check final message limit (3 messages total)
+        const FINAL_GUEST_LIMIT = GUEST_MESSAGE_LIMIT + 1; // 2 + 1 = 3
         if (leadCaptured && !isAuthenticated && leadData && userMessageCount >= FINAL_GUEST_LIMIT) {
             setPendingMessage(content);
             setShowSignupModal(true);

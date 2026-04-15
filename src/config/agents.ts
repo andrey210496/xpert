@@ -89,4 +89,4 @@ export const PLANS = {
     premium: { name: 'Premium', tokens: 1_000_000 },
 };
 
-export const GUEST_MESSAGE_LIMIT = 3;
+export const GUEST_MESSAGE_LIMIT = 2;

@@ -109,7 +109,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 12 }}
                 transition={{ duration: 0.2 }}
-                className={`relative w-full ${sizes[size]} surface-card p-8`}
+                className={`relative w-full ${sizes[size]} surface-card p-5 sm:p-8 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-border hover:scrollbar-thumb-border-strong`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {title && (

@@ -96,7 +96,7 @@ export function FinishSignupModal({ isOpen, onClose, leadData, onSignupComplete 
                 <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="flex justify-center mb-4"
+                    className="flex justify-center mb-3 sm:mb-4"
                 >
                     <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center">
                         <UserCheck size={28} className="text-accent" />
@@ -106,11 +106,11 @@ export function FinishSignupModal({ isOpen, onClose, leadData, onSignupComplete 
                 <h2 className="text-lg font-extrabold text-text-primary text-center tracking-tight font-display mb-1">
                     Para ter sua resposta, finalize seu cadastro
                 </h2>
-                <p className="text-xs text-text-secondary text-center mb-6">
+                <p className="text-xs text-text-secondary text-center mb-4 sm:mb-6">
                     Crie uma senha para acessar suas conversas a qualquer momento.
                 </p>
 
-                <div className="bg-bg-secondary/50 border border-border rounded-xl p-3 mb-5">
+                <div className="bg-bg-secondary/50 border border-border rounded-xl p-3 mb-4 sm:mb-5">
                     <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
                             <span className="text-text-tertiary">Nome</span>
