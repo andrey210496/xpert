@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Modal, Input, Button } from '../ui';
-import { Lock, UserCheck, AlertCircle } from 'lucide-react';
+import { Lock, UserCheck, AlertCircle, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import type { LeadInfo } from './LeadGate';
 import { clearStoredLead } from './LeadGate';
@@ -85,7 +85,14 @@ export function FinishSignupModal({ isOpen, onClose, leadData, onSignupComplete 
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} size="sm">
-            <div className="pt-4 pb-2">
+            <div className="relative pt-4 pb-2">
+                <button
+                    onClick={onClose}
+                    className="absolute -top-2 -right-2 p-1.5 rounded-lg text-text-tertiary hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer z-10"
+                    title="Fechar"
+                >
+                    <X size={18} />
+                </button>
                 <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
