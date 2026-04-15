@@ -614,6 +614,7 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
     });
     const [leadData, setLeadData] = useState<LeadInfo | null>(() => getStoredLead());
     const [showSignupModal, setShowSignupModal] = useState(false);
+    const [hasDismissedSignup, setHasDismissedSignup] = useState(false);
     const [pendingMessage, setPendingMessage] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const config = AGENT_CONFIGS[safeAgentType];
@@ -637,12 +638,13 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
             userMessageCount >= FINAL_GUEST_LIMIT && 
             !isStreaming && 
             !showSignupModal &&
+            !hasDismissedSignup &&
             messages.length > 0 &&
             messages[messages.length - 1].role === 'assistant'
         ) {
             setShowSignupModal(true);
         }
-    }, [isAuthenticated, leadCaptured, leadData, userMessageCount, isStreaming, showSignupModal, messages]);
+    }, [isAuthenticated, leadCaptured, leadData, userMessageCount, isStreaming, showSignupModal, hasDismissedSignup, messages]);
 
     const handleSend = useCallback((content: string) => {
         // If authenticated, send normally
@@ -892,7 +894,10 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
             {leadData && (
                 <FinishSignupModal
                     isOpen={showSignupModal}
-                    onClose={() => setShowSignupModal(false)}
+                    onClose={() => {
+                        setShowSignupModal(false);
+                        setHasDismissedSignup(true);
+                    }}
                     leadData={leadData}
                     onSignupComplete={handleSignupComplete}
                     pendingMessage={pendingMessage || undefined}
