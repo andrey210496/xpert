@@ -2,6 +2,7 @@ import { AGENT_CONFIGS } from '../config/agents';
 import { getAgentConfig } from './agentConfigService';
 import { fetchRelevantContext } from './knowledgeService';
 import type { ProfileType } from '../types';
+import { supabase } from './supabase';
 
 interface ChatMessage {
     role: 'system' | 'user' | 'assistant';
@@ -75,16 +76,35 @@ ${tenant.tenant_context ? `Regras e Informações Específicas: ${tenant.tenant_
         systemPrompt += `\n\nUSUÁRIO ATUAL: Você está conversando com ${profile.full_name}.`;
     }
 
+    let accessToken = '';
     try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+            accessToken = session.access_token;
+        }
+    } catch (e) {
+        console.warn('Failed to get session for chat request', e);
+    }
+
+    try {
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json'
+        };
+        
+        if (accessToken) {
+            headers['Authorization'] = `Bearer ${accessToken}`;
+        }
+
         const response = await fetch(`${API_BASE_URL}/api/chat`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({
                 messages,
                 agentType,
                 systemPrompt,
             }),
             signal,
+            credentials: 'include',
         });
 
         if (!response.ok) {

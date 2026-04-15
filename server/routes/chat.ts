@@ -2,6 +2,10 @@ import { Router, type Request, type Response } from 'express';
 
 const router = Router();
 
+// In-memory store to track anonymous guest usage (session Anti-Amnesia)
+const guestSessions = new Map<string, number>();
+const MAX_GUEST_REQUESTS = 3;
+
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini';
 
 interface ChatMessage {
@@ -41,6 +45,63 @@ router.post('/chat', async (req: Request, res: Response): Promise<void> => {
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
         res.status(400).json({ error: 'messages é obrigatório e deve ser um array não-vazio' });
         return;
+    }
+
+    // 1. Verify Authentication
+    const authHeader = req.headers.authorization;
+    let isAuthenticated = false;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        try {
+            const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+            const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+            
+            if (supabaseUrl && supabaseAnonKey) {
+                const verifyRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'apikey': supabaseAnonKey
+                    }
+                });
+                if (verifyRes.ok) {
+                    isAuthenticated = true;
+                }
+            }
+        } catch (e) {
+            console.error('Supabase Auth Verify Error:', e);
+        }
+    }
+
+    // 2. Enforce Strict Guest Limits
+    if (!isAuthenticated) {
+        // Rule A: Payload Manipulation Block
+        const userMessageCount = messages.filter(m => m.role === 'user').length;
+        if (userMessageCount > 3) {
+            res.status(403).json({ error: 'Guest message payload limit exceeded.' });
+            return;
+        }
+
+        // Rule B: Server-Side Session Tracking (Anti-Amnesia)
+        let guestId = '';
+        const cookieHeader = req.headers.cookie;
+        if (cookieHeader) {
+            const match = cookieHeader.match(/xpert_guest_id=([^;]+)/);
+            if (match) guestId = match[1];
+        }
+
+        if (!guestId) {
+            guestId = Math.random().toString(36).substring(2, 15);
+            res.setHeader('Set-Cookie', `xpert_guest_id=${guestId}; HttpOnly; Path=/; Max-Age=86400; SameSite=Strict`);
+        }
+
+        const currentRequests = guestSessions.get(guestId) || 0;
+        if (currentRequests >= MAX_GUEST_REQUESTS) {
+            res.status(403).json({ error: 'Guest session request limit exceeded. Please register.' });
+            return;
+        }
+
+        guestSessions.set(guestId, currentRequests + 1);
     }
 
     // Sanitize messages
