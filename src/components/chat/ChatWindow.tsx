@@ -25,7 +25,7 @@ import {
     LayoutDashboard
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { Logo, Badge } from '../ui';
+import { Logo } from '../ui';
 import { useChat } from '../../hooks/useChat';
 import { AGENT_CONFIGS, GUEST_MESSAGE_LIMIT } from '../../config/agents';
 import type { ProfileType, Message, Conversation } from '../../types';
