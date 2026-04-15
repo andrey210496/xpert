@@ -25,6 +25,7 @@ import {
     LayoutDashboard
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { Logo, Badge } from '../ui';
 import { useChat } from '../../hooks/useChat';
 import { AGENT_CONFIGS, GUEST_MESSAGE_LIMIT } from '../../config/agents';
 import type { ProfileType, Message, Conversation } from '../../types';
@@ -708,6 +709,7 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
                                     <Menu size={20} />
                                 </button>
                             )}
+                            <Logo size="sm" className="mr-2" />
                             <div className="relative">
                                 <AgentAvatar agentType={activeAgentType} size={36} />
                                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-bg-primary rounded-full flex items-center justify-center">

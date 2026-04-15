@@ -22,7 +22,7 @@ import {
     Pie,
     Cell,
 } from 'recharts';
-import { Card, Badge } from '../components/ui';
+import { Card, Badge, Logo } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { formatTokenCount } from '../utils/tokenCalculator';
 import { UserManagement } from '../components/dashboard/UserManagement';
@@ -69,12 +69,7 @@ export default function Dashboard({ onNavigateHome }: DashboardProps) {
             {/* Top Bar (Linear Style) */}
             <header className="h-14 px-4 border-b border-border bg-bg-primary flex items-center justify-between sticky top-0 z-40">
                 <div className="flex items-center gap-3">
-                    <button
-                        onClick={onNavigateHome}
-                        className="text-text-primary font-extrabold text-sm tracking-tighter cursor-pointer hover:opacity-80 font-display"
-                    >
-                        XPERT
-                    </button>
+                    <Logo size="sm" />
                     <span className="text-text-tertiary font-light text-xs">/</span>
                     <span className="text-xs font-semibold text-text-secondary tracking-tight">DASHBOARD</span>
                 </div>

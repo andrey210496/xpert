@@ -20,6 +20,11 @@
   --shadow-accent: 0 0 0 1px rgba(59, 130, 246, 0.3), 0 4px 24px rgba(59, 130, 246, 0.15);
   --shadow-accent-strong: 0 0 0 1px rgba(59, 130, 246, 0.5), 0 6px 32px rgba(59, 130, 246, 0.25);
 
+  /* Glow Effects */
+  --glow-primary: 0 0 20px 2px rgba(59, 130, 246, 0.25);
+  --glow-secondary: 0 0 15px rgba(16, 185, 129, 0.15);
+  --glow-accent: 0 0 30px 5px rgba(59, 130, 246, 0.15);
+
   /* Accent secundário — âmbar para CTAs de destaque */
   --color-cta: #F59E0B;
   --color-cta-hover: #FCD34D;
@@ -107,10 +112,34 @@
     border-radius: 10px;
     box-shadow: var(--shadow-soft);
     transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Animated border glow for high-importance elements */
+  .border-glow-premium {
+    position: relative;
+  }
+
+  .border-glow-premium::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+    background-size: 200% 100%;
+    animation: border-glow-move 3s linear infinite;
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0.5;
+  }
+
+  @keyframes border-glow-move {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 
   .surface-card:hover {
-    box-shadow: var(--shadow-medium);
+    box-shadow: var(--shadow-medium), var(--glow-primary);
     border-color: var(--color-border-strong);
   }
 
@@ -387,5 +416,36 @@
 
   .animate-fade-in-up {
     animation: fade-in-up 0.3s ease forwards;
+  }
+
+  /* === GLASSMORPHISM PREMIUM === */
+  .glass-premium {
+    background: rgba(14, 21, 32, 0.7);
+    backdrop-blur: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 
+      0 4px 24px -1px rgba(0, 0, 0, 0.5),
+      inset 0 0 20px 0 rgba(255, 255, 255, 0.02);
+  }
+
+  .glass-header {
+    background: rgba(10, 15, 26, 0.85);
+    backdrop-blur: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Sophisticated inner glow for buttons */
+  .btn-premium {
+    @apply btn-primary;
+    box-shadow: 
+      var(--shadow-soft),
+      inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .btn-premium:hover {
+    box-shadow: 
+      var(--shadow-medium),
+      var(--glow-primary),
+      inset 0 1px 1px rgba(255, 255, 255, 0.2);
   }
 }

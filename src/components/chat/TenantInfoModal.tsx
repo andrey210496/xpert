@@ -94,8 +94,7 @@ export function TenantInfoModal({ isOpen, onClose, tenant }: TenantInfoModalProp
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.96, y: 16 }}
                         transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                        className="relative w-full max-w-md bg-bg-secondary border border-border rounded-2xl overflow-hidden"
-                        style={{ boxShadow: 'var(--shadow-deep)' }}
+                        className="relative w-full max-w-md glass-premium border-glow-premium rounded-2xl overflow-hidden shadow-2xl"
                     >
                         {/* Glow Header Strip */}
                         <div className="glow-accent-sm h-1 w-full bg-accent/60 rounded-t-2xl" />

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, type HTMLMotionProps } from 'framer-motion';
 import { X } from 'lucide-react';
+export * from './Logo';
 
 // ===== Button =====
 
@@ -103,13 +104,13 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
             className="fixed inset-0 z-[60] flex items-center justify-center p-4"
             onClick={onClose}
         >
-            <div className="absolute inset-0 bg-bg-primary/80 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-bg-primary/40 backdrop-blur-md" />
             <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 12 }}
-                transition={{ duration: 0.2 }}
-                className={`relative w-full ${sizes[size]} surface-card p-5 sm:p-8 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-border hover:scrollbar-thumb-border-strong`}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className={`relative w-full ${sizes[size]} glass-premium border-glow-premium p-5 sm:p-8 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-border hover:scrollbar-thumb-border-strong rounded-2xl`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {title && (

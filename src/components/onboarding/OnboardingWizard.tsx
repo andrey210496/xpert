@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
-import { Button, Input, Badge } from '../ui';
+import { Button, Input, Badge, Logo } from '../ui';
 import { Home, Wrench, Hammer, ArrowRight, ArrowLeft, Check } from 'lucide-react';
 import type { ProfileType, Profile } from '../../types';
 
@@ -92,8 +92,11 @@ export function OnboardingWizard({ onComplete, onBack }: OnboardingProps) {
     };
 
     return (
-        <div className="min-h-screen bg-bg-primary flex items-center justify-center px-4">
+        <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center py-12 px-4">
             <div className="w-full max-w-lg">
+                <div className="flex justify-center mb-8">
+                    <Logo size="md" />
+                </div>
                 {/* Progress */}
                 <div className="flex items-center gap-2 mb-8">
                     {Array.from({ length: totalSteps }).map((_, i) => (
@@ -109,7 +112,7 @@ export function OnboardingWizard({ onComplete, onBack }: OnboardingProps) {
                 </div>
 
                 {/* Steps */}
-                <div className="glass-card p-8 min-h-[400px] flex flex-col">
+                <div className="glass-premium border-glow-premium p-8 min-h-[400px] flex flex-col rounded-2xl shadow-2xl relative overflow-hidden">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={step}

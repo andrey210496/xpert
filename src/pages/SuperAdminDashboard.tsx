@@ -26,7 +26,7 @@ import {
     Tooltip,
     ResponsiveContainer,
 } from 'recharts';
-import { Card, Badge, Button } from '../components/ui';
+import { Card, Badge, Button, Logo } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { formatTokenCount } from '../utils/tokenCalculator';
 import { supabase } from '../services/supabase';
@@ -228,9 +228,7 @@ export default function SuperAdminDashboard({ onNavigateHome }: SuperAdminDashbo
             {/* Top Nav */}
             <header className="h-14 px-6 border-b border-border-subtle flex items-center justify-between bg-bg-primary/50 backdrop-blur-md sticky top-0 z-10">
                 <div className="flex items-center gap-3">
-                    <button onClick={onNavigateHome} className="text-accent font-bold text-lg cursor-pointer">
-                        XPERT
-                    </button>
+                    <Logo size="sm" />
                     <span className="text-text-tertiary">/</span>
                     <span className="text-sm font-medium text-accent flex items-center gap-1.5">
                         <ShieldAlert size={16} /> SuperAdmin

@@ -37,8 +37,7 @@ export function UserProfileModal({ isOpen, onClose, profile }: UserProfileModalP
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.96, y: 16 }}
                         transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                        className="relative w-full max-w-sm bg-bg-secondary border border-border rounded-2xl overflow-hidden"
-                        style={{ boxShadow: 'var(--shadow-deep)' }}
+                        className="relative w-full max-w-sm glass-premium border-glow-premium rounded-2xl overflow-hidden shadow-2xl"
                     >
                         {/* Top accent line */}
                         <div className="h-px w-full bg-gradient-to-r from-transparent via-accent/60 to-transparent" />
