@@ -912,11 +912,11 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
                 />
             )}
             
-            {tenant && (
+            {isAuthenticated && (
                 <TenantInfoModal
                     isOpen={showTenantModal}
                     onClose={() => setShowTenantModal(false)}
-                    tenant={tenant}
+                    tenant={tenant ?? null}
                 />
             )}
         </div>
