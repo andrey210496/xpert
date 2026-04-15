@@ -589,7 +589,7 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
     const activeAgentType = embeddedAgentType || agentType;
     const safeAgentType = activeAgentType || 'admin';
 
-    const { isAuthenticated, profile, signOut } = useAuth();
+    const { isAuthenticated, profile, tenant, signOut } = useAuth();
     const navigate = useNavigate();
     const {
         messages, conversations, currentConversation, isStreaming,

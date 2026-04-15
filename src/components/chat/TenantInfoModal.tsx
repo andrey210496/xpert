@@ -1,6 +1,5 @@
-import React from 'react';
 import { Modal } from '../ui';
-import { Building2, Info, Calendar, ShieldCheck } from 'lucide-react';
+import { Building2, Info, ShieldCheck } from 'lucide-react';
 
 interface TenantInfoModalProps {
     isOpen: boolean;

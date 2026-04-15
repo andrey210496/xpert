@@ -1,14 +1,10 @@
-import React from 'react';
 import { Modal } from '../ui';
 import { Mail, Phone, User, Key } from 'lucide-react';
-import type { Database } from '../../types/supabase';
-
-type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface UserProfileModalProps {
     isOpen: boolean;
     onClose: () => void;
-    profile: Profile & { email?: string };
+    profile: any;
 }
 
 export function UserProfileModal({ isOpen, onClose, profile }: UserProfileModalProps) {
