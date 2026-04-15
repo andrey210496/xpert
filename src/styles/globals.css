@@ -8,10 +8,10 @@
   --color-bg-elevated: #192236;
   --color-bg-hover: #1E293B;
 
-  /* Accent principal — azul elétrico limpo */
-  --color-accent: #3B82F6;
-  --color-accent-hover: #60A5FA;
-  --color-accent-muted: rgba(59, 130, 246, 0.12);
+  /* Accent principal — Ouro/Amber sofisticado */
+  --color-accent: #D4AF37; /* Metallic Gold */
+  --color-accent-hover: #FCD34D;
+  --color-accent-muted: rgba(212, 175, 55, 0.12);
 
   /* Accent secundário — âmbar para CTAs de destaque */
   --color-cta: #F59E0B;
@@ -97,13 +97,13 @@
   .surface-card {
     background: var(--color-bg-elevated);
     border: 1px solid var(--color-border);
-    border-radius: 12px;
+    border-radius: 2px; /* Sharp Brutalist geometry */
   }
 
   .surface-card-sm {
     background: var(--color-bg-elevated);
     border: 1px solid var(--color-border);
-    border-radius: 8px;
+    border-radius: 0px; /* Absolute sharp */
   }
 
   .text-display {
@@ -203,9 +203,14 @@
     -webkit-mask-image: radial-gradient(circle at 50% 30%, black 20%, transparent 80%);
   }
 
-  .bg-radial-glow {
-    background:
-      radial-gradient(circle at 50% -20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 80% 100%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+  /* Sharp contrast geometric utility */
+  .bg-sharp-contrast {
+    background: repeating-linear-gradient(
+      -45deg,
+      rgba(212, 175, 55, 0.03),
+      rgba(212, 175, 55, 0.03) 2px,
+      transparent 2px,
+      transparent 10px
+    );
   }
 }

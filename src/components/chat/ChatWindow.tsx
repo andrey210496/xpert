@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LeadGate, getStoredLead } from './LeadGate';
 import { FinishSignupModal } from './FinishSignupModal';
+import { UserProfileModal } from './UserProfileModal';
+import { TenantInfoModal } from './TenantInfoModal';
 import type { LeadInfo } from './LeadGate';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -478,19 +480,10 @@ function ChatSidebar({
                     }`}
             >
                 <div className="h-16 px-4 border-b border-border flex items-center justify-between">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-tertiary font-bold">XPERT PROTOCOL</span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-tertiary font-bold">HISTÓRICO</span>
                     <button onClick={onClose} className="lg:hidden p-2 hover:bg-bg-hover rounded-md text-text-tertiary transition-colors">
                         <X size={18} />
                     </button>
-                </div>
-
-                {/* Active Agent Badge */}
-                <div className="mx-3 mt-4 mb-2 p-3 rounded-lg border bg-current/5" style={{ borderColor: `${config.color}20`, color: config.color }}>
-                    <div className="flex items-center gap-2 mb-0.5">
-                        <AgentAvatar agentType={agentType} size={16} />
-                        <span className="text-xs font-bold font-display tracking-tight text-text-primary">{config.name}</span>
-                    </div>
-                    <span className="text-[9px] uppercase tracking-wider font-bold opacity-60">Agente Ativo</span>
                 </div>
 
                 <div className="px-3 py-2">
@@ -615,6 +608,8 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
     const [leadData, setLeadData] = useState<LeadInfo | null>(() => getStoredLead());
     const [showSignupModal, setShowSignupModal] = useState(false);
     const [hasDismissedSignup, setHasDismissedSignup] = useState(false);
+    const [showProfileModal, setShowProfileModal] = useState(false);
+    const [showTenantModal, setShowTenantModal] = useState(false);
     const [pendingMessage, setPendingMessage] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const config = AGENT_CONFIGS[safeAgentType];
@@ -788,10 +783,14 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
                                                         </button>
                                                     ) : (
                                                         <>
-                                                            <button className="w-full text-left px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover flex items-center gap-2 transition-colors">
+                                                            <button 
+                                                                onClick={() => { setShowProfileModal(true); setUserMenuOpen(false); }}
+                                                                className="w-full text-left px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover flex items-center gap-2 transition-colors">
                                                                 <User size={14} /> Meu Perfil
                                                             </button>
-                                                            <button className="w-full text-left px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover flex items-center gap-2 transition-colors">
+                                                            <button 
+                                                                onClick={() => { setShowTenantModal(true); setUserMenuOpen(false); }}
+                                                                className="w-full text-left px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover flex items-center gap-2 transition-colors">
                                                                 <Building2 size={14} /> Meu Condomínio
                                                             </button>
                                                         </>
@@ -901,6 +900,23 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
                     leadData={leadData}
                     onSignupComplete={handleSignupComplete}
                     pendingMessage={pendingMessage || undefined}
+                />
+            )}
+
+            {/* Profile and Tenant Modals */}
+            {profile && (
+                <UserProfileModal
+                    isOpen={showProfileModal}
+                    onClose={() => setShowProfileModal(false)}
+                    profile={profile}
+                />
+            )}
+            
+            {tenant && (
+                <TenantInfoModal
+                    isOpen={showTenantModal}
+                    onClose={() => setShowTenantModal(false)}
+                    tenant={tenant}
                 />
             )}
         </div>
