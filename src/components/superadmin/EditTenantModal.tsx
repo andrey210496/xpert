@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Modal, Button } from '../ui';
 import { supabase } from '../../services/supabase';
-import { Building2, ChevronDown, Zap, PlusCircle, Trash2, AlertTriangle, Check } from 'lucide-react';
+import { Building2, ChevronDown, Zap, PlusCircle, Trash2, Check } from 'lucide-react';
 
 interface TenantData {
     id: string;
