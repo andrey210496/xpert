@@ -17,14 +17,22 @@ export function CreateTenantModal({ isOpen, onClose, onSuccess }: CreateTenantMo
     const [formData, setFormData] = useState({
         tenantName: '',
         plan: 'pro',
+        adminName: '',
+        adminEmail: '',
+        adminPhone: ''
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
-        if (!formData.tenantName.trim()) {
-            setError('Preencha o nome do condomínio.');
+        if (
+            !formData.tenantName.trim() ||
+            !formData.adminName.trim() ||
+            !formData.adminEmail.trim() ||
+            !formData.adminPhone.trim()
+        ) {
+            setError('Preencha todos os campos obrigatórios.');
             return;
         }
 
@@ -33,9 +41,26 @@ export function CreateTenantModal({ isOpen, onClose, onSuccess }: CreateTenantMo
             return;
         }
 
+        if (formData.adminName.trim().length > 120) {
+            setError('Nome do síndico muito longo (máx. 120 caracteres).');
+            return;
+        }
+
+        if (formData.adminEmail.trim().length > 254 ||
+            !/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(formData.adminEmail.trim())) {
+            setError('E-mail inválido.');
+            return;
+        }
+
+        if (formData.adminPhone.replace(/\D/g, '').length < 10) {
+            setError('Telefone inválido.');
+            return;
+        }
+
         setIsLoading(true);
         try {
-            // Chamar a RPC segura que ignora Row Level Security (RLS) e garante a criação atômica
+            // Chamar a RPC segura que gera apenas o Condomínio e o PIN, deixando a criação da conta/senha para o próprio Síndico.
+            // Obs: Ignoramos adminName/Email no back-end para não ocupar o e-mail no Supabase Auth e não dar erro quando ele for se cadastrar.
             const { data, error: rpcError } = await supabase.rpc('superadmin_create_tenant_with_invite', {
                 p_tenant_name: formData.tenantName.trim(),
                 p_plan: formData.plan
@@ -77,12 +102,40 @@ export function CreateTenantModal({ isOpen, onClose, onSuccess }: CreateTenantMo
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                         <div className="space-y-4 p-4 rounded-xl bg-bg-secondary border border-border">
+                            <h3 className="text-xs uppercase tracking-widest font-bold text-text-tertiary">Dados do Condomínio</h3>
                             <Input
                                 label="Nome do Condomínio"
                                 placeholder="Ex: Vida Nova Residencial"
                                 value={formData.tenantName}
                                 onChange={(e) => setFormData({ ...formData, tenantName: e.target.value })}
                                 autoFocus
+                            />
+                        </div>
+
+                        <div className="space-y-4 p-4 rounded-xl bg-bg-secondary border border-border">
+                            <h3 className="text-xs uppercase tracking-widest font-bold text-text-tertiary">Acesso do Síndico</h3>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <Input
+                                    label="Nome Completo"
+                                    placeholder="Nome do Síndico"
+                                    value={formData.adminName}
+                                    onChange={(e) => setFormData({ ...formData, adminName: e.target.value })}
+                                />
+                                <Input
+                                    label="Telefone"
+                                    placeholder="(11) 99999-9999"
+                                    value={formData.adminPhone}
+                                    onChange={(e) => setFormData({ ...formData, adminPhone: e.target.value })}
+                                />
+                            </div>
+
+                            <Input
+                                label="E-mail Administrativo"
+                                placeholder="sindico@condominio.com"
+                                type="email"
+                                value={formData.adminEmail}
+                                onChange={(e) => setFormData({ ...formData, adminEmail: e.target.value })}
                             />
                         </div>
 
@@ -109,7 +162,7 @@ export function CreateTenantModal({ isOpen, onClose, onSuccess }: CreateTenantMo
                     </div>
                     <h2 className="text-2xl font-bold text-text-primary tracking-tight font-display mb-2">Condomínio Criado!</h2>
                     <p className="text-sm text-text-secondary font-sans leading-relaxed mb-8 max-w-sm mx-auto">
-                        Envie este Código Mestre para o Síndico. Ele deverá inseri-lo na tela "Vincular Condomínio" após criar a própria conta.
+                        O condomínio e o usuário do síndico foram criados. Se quiser permitir que outra pessoa seja administradora, ou caso ele esqueça a senha, envie o PIN extra abaixo.
                     </p>
                     
                     <div className="bg-bg-elevated border border-border rounded-xl p-6 mb-8">
