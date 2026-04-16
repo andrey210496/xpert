@@ -130,10 +130,10 @@
     inset: -1px;
     background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
     background-size: 200% 100%;
-    animation: border-glow-move 3s linear infinite;
+    animation: border-glow-move 12s linear infinite;
     border-radius: inherit;
     z-index: -1;
-    opacity: 0.5;
+    opacity: 0.25;
   }
 
   @keyframes border-glow-move {
