@@ -23,7 +23,6 @@ export function CreateTenantModal({ isOpen, onClose, onSuccess }: CreateTenantMo
         e.preventDefault();
         setError('');
 
-        if (
         if (!formData.tenantName.trim()) {
             setError('Preencha o nome do condomínio.');
             return;
