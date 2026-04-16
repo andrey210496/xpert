@@ -16,7 +16,7 @@ export function CreateTenantModal({ isOpen, onClose, onSuccess }: CreateTenantMo
     const [masterCode, setMasterCode] = useState('');
     const [formData, setFormData] = useState({
         tenantName: '',
-        plan: 'premium',
+        plan: 'pro',
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
