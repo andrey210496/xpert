@@ -35,38 +35,17 @@ export function CreateTenantModal({ isOpen, onClose, onSuccess }: CreateTenantMo
 
         setIsLoading(true);
         try {
-            // 1. Criar o Condomínio (Tenant)
-            const { data: tenantData, error: tenantError } = await supabase
-                .from('tenants')
-                .insert([{
-                    name: formData.tenantName.trim(),
-                    plan: formData.plan,
-                    status: 'active',
-                    plan_tokens_total: formData.plan === 'premium' ? 1000000 : 500000,
-                    token_balance: formData.plan === 'premium' ? 1000000 : 500000
-                }])
-                .select('id')
-                .single();
+            // Chamar a RPC segura que ignora Row Level Security (RLS) e garante a criação atômica
+            const { data, error: rpcError } = await supabase.rpc('superadmin_create_tenant_with_invite', {
+                p_tenant_name: formData.tenantName.trim(),
+                p_plan: formData.plan
+            });
 
-            if (tenantError) throw tenantError;
-            if (!tenantData) throw new Error('Não foi possível identificar o ID do condomínio criado.');
+            if (rpcError) throw rpcError;
+            if (data?.error) throw new Error(data.error);
+            if (!data?.master_code) throw new Error('Não foi possível gerar o código_mestre do condomínio.');
 
-            // 2. Criar a Chave Mestra (Invite Code)
-            const code = `MASTER-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-            
-            const { error: inviteError } = await supabase
-                .from('invite_codes')
-                .insert([{
-                    tenant_id: tenantData.id,
-                    code: code,
-                    profile_type: 'admin',
-                    max_uses: 1,
-                    current_uses: 0
-                }]);
-
-            if (inviteError) throw inviteError;
-
-            setMasterCode(code);
+            setMasterCode(data.master_code);
             setStep('success');
             onSuccess();
         } catch (err: unknown) {
