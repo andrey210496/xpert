@@ -231,9 +231,10 @@ export function useChat(agentType: ProfileType): UseChatReturn {
                                     tokens_output: usage.completion_tokens,
                                 });
 
-                                await supabase.rpc('increment_conversation_tokens', {
+                                await supabase.rpc('record_chat_usage', {
                                     p_conv_id: activeConv.id,
-                                    p_tokens: usage.prompt_tokens + usage.completion_tokens
+                                    p_tokens_input: usage.prompt_tokens,
+                                    p_tokens_output: usage.completion_tokens
                                 });
                             }
                         }

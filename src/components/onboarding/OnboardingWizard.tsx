@@ -71,8 +71,8 @@ export function OnboardingWizard({ onComplete, onBack }: OnboardingProps) {
                 fullName: formData.fullName,
                 phone: formData.phone,
                 profileType: formData.profileType as ProfileType,
-                tenantName: formData.profileType === 'admin' || formData.profileType === 'superadmin' ? formData.tenantName : undefined,
-                inviteCode: formData.profileType !== 'admin' && formData.profileType !== 'superadmin' ? formData.inviteCode : undefined,
+                tenantName: formData.profileType === 'superadmin' ? formData.tenantName : undefined,
+                inviteCode: formData.profileType !== 'superadmin' ? formData.inviteCode : undefined,
             });
             setIsSubmitting(false);
             if (result.error) {
@@ -211,15 +211,31 @@ export function OnboardingWizard({ onComplete, onBack }: OnboardingProps) {
                                 </div>
                             )}
 
-                            {step === 3 && (
+                            {step === 3 && formData.profileType === 'superadmin' && (
                                 <div>
-                                    <h2 className="text-2xl font-bold text-text-primary mb-2">Quase pronto!</h2>
+                                    <h2 className="text-2xl font-bold text-text-primary mb-2">Configure seu primeiro condomínio</h2>
                                     <p className="text-text-secondary text-sm mb-6">
-                                        Crie uma senha para sua conta.
+                                        Como Super Admin, você pode criar o ambiente inicial.
+                                    </p>
+                                    <Input
+                                        label="Nome do condomínio"
+                                        placeholder="Ex: Condomínio Viva Bem"
+                                        value={formData.tenantName}
+                                        onChange={(e) => setFormData({ ...formData, tenantName: e.target.value })}
+                                        error={errors.tenantName}
+                                    />
+                                </div>
+                            )}
+
+                            {step === 3 && formData.profileType !== 'superadmin' && (
+                                <div>
+                                    <h2 className="text-2xl font-bold text-text-primary mb-2">Crie sua senha</h2>
+                                    <p className="text-text-secondary text-sm mb-6">
+                                        Para finalizar, crie uma senha segura para acessar sua conta.
                                     </p>
                                     <Input
                                         label="Senha"
-                                        placeholder="Mínimo 6 caracteres"
+                                        placeholder="Mínimo 8 caracteres"
                                         type="password"
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
