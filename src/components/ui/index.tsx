@@ -64,12 +64,12 @@ export function Input({ label, error, mono, className = '', ...props }: InputPro
     return (
         <div className="flex flex-col gap-1.5 focus-within:group">
             {label && (
-                <label className="text-[10px] uppercase tracking-widest text-text-secondary font-display font-semibold mb-0.5">
+                <label className="text-[11px] text-text-secondary font-sans font-medium mb-0.5">
                     {label}
                 </label>
             )}
             <input
-                className={`h-10 w-full px-3 bg-bg-secondary border border-border rounded-md text-text-primary placeholder:text-text-tertiary outline-none transition-all duration-200 focus:border-accent focus:ring-1 focus:ring-accent/20 ${mono ? 'font-mono text-sm' : 'font-sans text-sm'} ${error ? 'border-error' : ''} ${className}`}
+                className={`h-10 w-full px-3 bg-bg-secondary border border-border rounded-[6px] text-text-primary placeholder:text-text-tertiary outline-none transition-all duration-200 focus:border-accent focus:ring-1 focus:ring-accent/20 ${mono ? 'font-mono text-sm' : 'font-sans text-sm'} ${error ? 'border-error' : ''} ${className}`}
                 {...props}
             />
             {error && <span className="text-[10px] text-error font-medium">{error}</span>}
@@ -179,7 +179,7 @@ export function Badge({ children, variant = 'neutral', className = '', showDot =
     };
 
     return (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-semibold font-display rounded-full border ${variants[variant]} ${className}`}>
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium font-sans rounded-[4px] border ${variants[variant]} ${className}`}>
             {showDot && <span className={`w-1.5 h-1.5 rounded-full ${dotColors[variant]}`} />}
             {children}
         </span>
@@ -213,12 +213,12 @@ export function TextArea({ label, className = '', ...props }: TextAreaProps) {
     return (
         <div className="flex flex-col gap-1.5">
             {label && (
-                <label className="text-[10px] uppercase tracking-widest text-text-secondary font-display font-semibold mb-0.5">
+                <label className="text-[11px] text-text-secondary font-sans font-medium mb-0.5">
                     {label}
                 </label>
             )}
             <textarea
-                className={`w-full px-3 py-2 bg-bg-secondary border border-border rounded-md text-text-primary placeholder:text-text-tertiary outline-none transition-all duration-200 focus:border-accent focus:ring-1 focus:ring-accent/20 resize-none font-sans text-sm ${className}`}
+                className={`w-full px-3 py-2 bg-bg-secondary border border-border rounded-[6px] text-text-primary placeholder:text-text-tertiary outline-none transition-all duration-200 focus:border-accent focus:ring-1 focus:ring-accent/20 resize-none font-sans text-sm ${className}`}
                 {...props}
             />
         </div>

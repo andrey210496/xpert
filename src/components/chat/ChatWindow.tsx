@@ -481,7 +481,7 @@ function ChatSidebar({
                     }`}
             >
                 <div className="h-16 px-4 border-b border-border flex items-center justify-between">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-tertiary font-bold">HISTÓRICO</span>
+                    <Logo size="sm" />
                     <button onClick={onClose} className="lg:hidden p-2 hover:bg-bg-hover rounded-md text-text-tertiary transition-colors">
                         <X size={18} />
                     </button>
@@ -709,7 +709,6 @@ export function ChatWindow({ agentType, embeddedAgentType, onNavigateLogin }: Ch
                                     <Menu size={20} />
                                 </button>
                             )}
-                            <Logo size="sm" className="mr-2" />
                             <div className="relative">
                                 <AgentAvatar agentType={activeAgentType} size={36} />
                                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-bg-primary rounded-full flex items-center justify-center">
